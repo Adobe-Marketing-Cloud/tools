@@ -1,0 +1,630 @@
+#!/bin/bash
+
+###############################################################################
+# ADOBE CONFIDENTIAL                                                          #
+# __________________                                                          #
+#                                                                             #
+# Copyright 2014 Adobe Systems Incorporated                                   #
+# All Rights Reserved.                                                        #
+#                                                                             #
+# NOTICE:  All information contained herein is, and remains                   #
+# the property of Adobe Systems Incorporated and its suppliers,               #
+# if any.  The intellectual and technical concepts contained                  #
+# herein are proprietary to Adobe Systems Incorporated and its                #
+# suppliers and are protected by trade secret or copyright law.               #
+# Dissemination of this information or reproduction of this material          #
+# is strictly forbidden unless prior written permission is obtained           #
+# from Adobe Systems Incorporated.                                            #
+###############################################################################
+
+###############################################################################
+#
+# repo // version 1.0
+# Uploads or downloads JCR content from a local filesystem to a server.
+# Simple vlt replacement based on content packages & CRX packmgr HTTP API.
+#
+# Supported platforms:
+# - Mac OSX (+ curl, rsync)
+# - Linux (+ curl, rsync)
+# - Windows with Cygwin (+ zip, unzip, curl, rsync packages)
+#
+###############################################################################
+
+# default configs (can be set in .repo file)
+server="http://localhost:4502"
+credentials="admin:admin"
+force=false
+quiet=false
+packmgr="/crx/packmgr/service/.json"
+packageGroup="tmp/repo"
+
+
+# -- help output ---------------------------------------------------------------
+
+readonly PROGNAME=$(basename $0)
+
+function show_help_commands() {
+    echo "Available commands:"
+    echo
+    echo "  put                upload local file system content to server"
+    echo "  get                download server content to local file system"
+    echo "  status (st)        list status of modified/added/deleted files"
+    echo "  diff               show differences between local filesystem and server"
+}
+
+function show_help_global() {
+    echo "Usage: $PROGNAME <command> [opts] [<path>]"
+    echo
+    echo "Uploads or downloads JCR content from a local filesystem to a server."
+    echo
+    echo "Takes a given path inside a jcr_root/ filevault structure as single filter"
+    echo "to either upload or download that file or subtree using a content package."
+    echo "Note in case of a directory, it will be entirely overwritten."
+    echo
+    show_help_commands
+    echo
+    echo "Config files:"
+    echo
+    echo "  .repo"
+    echo
+    echo "  Can be placed in checkout or any parent directory. Allows to configure"
+    echo "  server and credentials. Note that command line options take precedence."
+    echo
+    echo "  server=http://server.com:8080"
+    echo "  credentials=user:pwd"
+    echo
+    echo
+    echo "  .repoignore"
+    echo
+    echo "  Placed in the jcr_root directory, this file can list files to ignore"
+    echo "  using glob patterns. Also supported are .vltignore files."
+    echo
+    echo "Examples:"
+    echo
+    echo "  (1) Start from scratch, working on /apps/project"
+    echo
+    echo "      mkdir -p jcr_root/apps/project  # jcr_root is important"
+    echo "      repo get jcr_root/apps/project  # fetch /apps/project"
+    echo
+    echo "  (2) Upload changes to server"
+    echo
+    echo "      cd jcr_root/apps/project"
+    echo "      vim .content.xml                # some modifications"
+    echo "      repo put                        # upload & overwrite entire dir"
+    echo "      touch file.jsp                  # add new file"
+    echo "      repo put file.jsp               # just push single file"
+    echo
+    echo "  (3) Download changes from server"
+    echo
+    echo "      repo get"
+    echo
+    echo "  (4) Show status and diff"
+    echo
+    echo "      repo st"
+    echo "      repo diff"
+    echo
+    echo "  (5) Use custom server & credentials"
+    echo
+    echo "      repo st -s localhost:8888 -u user:pwd"
+    echo
+    echo "  (6) Avoid interactive confirmation (force)"
+    echo "      Be careful, easy to wipe out your repository!"
+    echo
+    echo "      repo put -f"
+    echo
+    echo "Use '$PROGNAME <command> -h' for help on a specific command."
+}
+
+function show_help() {
+    echo "Usage: $PROGNAME $action [opts] [<path>]"
+    echo
+if [ $action == "put" ]; then
+    echo "Upload local file system content to server for the given path."
+elif [ $action == "get" ]; then
+    echo "Download server content to local filesystem for the given path."
+elif [ $action == "status" ]; then
+    echo "List status of files compared to the server at the given path."
+elif [ $action == "diff" ]; then
+    echo "Show differences between local filesystem and server at the given path."
+fi
+    echo
+    echo "Arguments:"
+    echo "  <path>             local directory or file to sync; defaults to current dir"
+    echo
+    echo "Options:"
+    echo "  -h --help          show this help"
+    echo "  -s <server>        server, defaults to 'http://localhost:4502'"
+    echo "                     include context path if needed"
+    echo "  -u <user>:<pwd>    user and password, defaults to 'admin:admin'"
+if [[ $action == "put" || $action == "get" ]]; then
+    echo "  -f                 force, don't ask for confirmation"
+    echo "  -q                 quiet, don't output anything"
+fi
+if [[ $action == "status" ]]; then
+    echo
+    echo "Status legend:"
+    echo "  M                  modified"
+    echo "  A                  added locally / deleted remotely"
+    echo "  D                  removed locally / added remotely"
+    echo "  ~ fd               conflict: local file vs. remote directory"
+    echo "  ~ df               conflict: local directory vs. remote file"
+fi
+    echo
+    echo "See '$PROGNAME -h' for other commands, examples and more."
+}
+
+function show_hint_repo_config() {
+    local repoCfg=${repoCfg:-$rootpath/.repo}
+    echo
+    echo "Hint: You can set the server/credentials in a .repo config file:"
+    echo
+    if [ -n "$opt_server" ]; then
+        echo "    echo server=$opt_server >> \"$repoCfg\""
+    fi
+    if [ -n "$opt_credentials" ]; then
+        echo "    echo credentials=user:*** >> \"$repoCfg\""
+    fi
+}
+
+# -- general script utils ------------------------------------------------------
+
+function print() {
+    if $verbose; then
+        echo "$@"
+    fi
+}
+
+function echo_err() {
+    echo "$@" 1>&2;
+}
+
+function cleanup() {
+    if [ -d "$tmpDir" ]; then
+        rm -rf "$tmpDir"
+    fi
+    exit $1
+}
+
+trap "cleanup 130" SIGINT SIGTERM SIGHUP SIGQUIT
+
+function fail() {
+    echo_err "$PROGNAME: $1"
+    cleanup ${2:-1}
+}
+
+function userfail() {
+    # use exit code 4 for user/argument errors
+    fail "$1" 4
+}
+
+function prompt() {
+    read -p "$1 (y/n): " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        echo_err "aborted."
+        cleanup 3
+    fi
+}
+
+function abspath() {
+    # generate absolute path from relative path
+    # $1     : relative filename
+    # return : absolute path
+    if [ -d "$1" ]; then
+        # dir
+        echo "$(cd "$1"; pwd)"
+    elif [ -f "$1" ]; then
+        # file
+        if [[ $1 == */* ]]; then
+            echo "$(cd "${1%/*}"; pwd)/${1##*/}"
+        else
+            echo "$(pwd)/$1"
+        fi
+    fi
+}
+
+function find_up () {
+    # find a file upwards in the tree
+    # $1     : start directory
+    # $2     : file to find in dir or any ancestor
+    # return : found file or empty
+    dir=$(abspath "$1")
+    while [ -n "$dir" ]; do
+        if [ -e "$dir/$2" ]; then
+            echo "$dir/$2"
+            break
+        fi
+        dir=${dir%/*}
+    done
+}
+
+# -- creating package zips -----------------------------------------------------
+
+function create_pkg_meta_inf() {
+    local base=$1
+    local filter=$2
+    local pkgGroup=$3
+    local pkgName=$4
+    local pkgVersion=$5
+    
+    mkdir -p "$base/META-INF/vault"
+    mkdir -p "$base/jcr_root"
+
+    cat > "$base/META-INF/vault/filter.xml" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<workspaceFilter version="1.0">
+    <filter root="$filter"/>
+</workspaceFilter>
+EOF
+
+    cat > "$base/META-INF/vault/properties.xml" <<EOF
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+<entry key="name">$pkgName</entry>
+<entry key="version">$pkgVersion</entry>
+<entry key="group">$pkgGroup</entry>
+</properties>
+EOF
+}
+
+function write_excludes() {
+    # 1. hardcoded exclusions
+    cat > "$1" <<EOF
+.repo
+.repoignore
+.vlt
+.vltignore
+.vlt-sync.log
+.vlt-sync-config.properties
+.DS_Store
+EOF
+
+    # 2. global wildcard exclusions in root
+    cat "$rootpath/.vltignore"  >> "$1" 2> /dev/null
+    cat "$rootpath/.repoignore" >> "$1" 2> /dev/null
+
+    # 3. individual subfolder ignore files
+    for ignoreFile in `find $path -name .vltignore`; do
+        # find the relative path from execution base path to the ignore file
+        # and add that as prefix to the rules from the file
+        local relPath=${ignoreFile%/*}/
+        relPath=${relPath#$path/}
+        cat $ignoreFile | sed -e "s,^,$relPath," >> "$1"
+    done
+}
+
+function build_zip() {
+    # zip must be executed inside the dir for the right paths in the zip
+    pushd "$1" > /dev/null    
+    zip -q -r pkg.zip .
+    popd > /dev/null
+    
+    zipfile="$1/pkg.zip"
+}
+
+# -- package http --------------------------------------------------------------
+
+function curl_http() {
+    curl -u $credentials -f -s -S $1
+}
+
+function pkg_mgr_http() {
+    if [[ $(curl_http "$2") != *\"success\":true* ]]; then
+        fail "failed to $1 package" 5
+    fi
+}
+
+function upload_pkg() {
+    pkg_mgr_http "upload" "-F package=@$1 -F force=true $server$packmgr?cmd=upload"
+}
+
+function install_pkg() {
+    pkg_mgr_http "install" "-X POST $server$packmgr/etc/packages/$1?cmd=install"
+}
+
+function build_pkg() {
+    pkg_mgr_http "build" "-X POST $server$packmgr/etc/packages/$1?cmd=build"
+}
+
+function delete_pkg() {
+    pkg_mgr_http "build" "-X POST $server$packmgr/etc/packages/$1?cmd=delete"
+}
+
+function download_pkg() {
+    curl_http "-o $2 $server/etc/packages/$1" > /dev/null
+    if [ $? -ne 0 ]; then
+        fail "failed to download package" 5
+    fi
+}
+
+# -- diffing -------------------------------------------------------------------
+function colorize_diff() {
+    # colorize if output goes to terminal
+    if $isatty; then
+        awk '
+            /^---/ {print "\033[38m" $0 "\033[39m"; next}
+            /^\+\+\+/ {print "\033[38m" $0 "\033[39m"; next}
+            /^-/ {print "\033[31m" $0 "\033[39m"; next}
+            /^\+/ {print "\033[32m" $0 "\033[39m"; next}
+            /^@/ {print "\033[36m" $0 "\033[39m"; next}
+            1 {print "\033[38m" $0 "\033[39m";}
+        '
+    else
+        cat
+    fi
+}
+
+function do_diff() {
+    # normal diff
+    # - sed: don't print file/directory conflicts in diff
+    # - awk: colorize diff output (like git diff)
+    # - less: page output (like git)
+    diff -rduNw "REMOTE$1" "LOCAL$1" |
+        sed -e       's/^File \([^ ]*\) is a regular file while file \(.*\)\.* is a directory$//g' \
+            -e 's/^File \([^ ]*\) is a regular empty file while file \(.*\)\.* is a directory$//g' \
+            -e       's/^File \([^ ]*\) is a directory while file \(.*\)\.* is a regular file$//g' \
+            -e 's/^File \([^ ]*\) is a directory while file \(.*\)\.* is a regular empty file$//g'  |
+        colorize_diff  |
+        less -FXR
+}
+
+function do_diff_stat() {
+    # but handle file/dir conflicts (shown using tilde like in svn)
+    diff -rq "REMOTE$1" "LOCAL$1" |
+        sed -e                                        's/^Files REMOTE\([^ ]*\) and \(.*\)\.*differ$/M       \1/g' \
+            -e                                                 's/^Only in LOCAL\([^\:]*\)\: \(.*\)$/A       \1\/\2/g' \
+            -e                                                's/^Only in REMOTE\([^\:]*\)\: \(.*\)$/D       \1\/\2/g' \
+            -e       's/^File REMOTE\([^ ]*\) is a regular file while file \(.*\)\.* is a directory$/~ df    \1/g' \
+            -e 's/^File REMOTE\([^ ]*\) is a regular empty file while file \(.*\)\.* is a directory$/~ df    \1/g' \
+            -e       's/^File REMOTE\([^ ]*\) is a directory while file \(.*\)\.* is a regular file$/~ fd    \1/g' \
+            -e 's/^File REMOTE\([^ ]*\) is a directory while file \(.*\)\.* is a regular empty file$/~ fd    \1/g' |
+        less -FX
+}
+
+# -- main ----------------------------------------------------------------------
+
+if [ $# -eq 0 ]; then
+    userfail "No command given. See usage help with -h."
+fi
+
+# first argument is global help or action
+if [[ $1 == "-h" || $1 == "--help" || $1 == "help" ]]; then
+    show_help_global
+    exit
+fi
+
+action=$1
+shift
+
+# alias
+if [ $action == "st" ]; then action="status"; fi
+
+# parse arguments
+path=$PWD
+
+while [ $# -gt 0 ]; do
+    # --options
+    if [[ $1 == --* ]]; then
+        opt=${1#*--}
+        case $opt in
+            help)  show_help; exit ;;
+            *)     userfail "Unrecognized option '--$opt'. See usage help with -h." ;;
+        esac
+        
+    # -o options, can be combined: -fq
+    elif [[ $1 == -* ]]; then
+        arg=${1#*-}
+        while [ -n "$arg" ]; do
+            opt=${arg:0:1}
+            arg=${arg:1}
+            case $opt in
+                h)  show_help; exit ;;
+                s)  opt_server=$2; shift ;;
+                u)  opt_credentials="$2"; shift ;;
+                f)  opt_force=true ;;
+                q)  opt_quiet=true ;;
+                *)  userfail "Unrecognized option '-$opt'. See usage help with -h." ;;
+            esac
+        done
+    # arguments after options
+    else
+        path=$1
+    fi
+    shift
+done
+
+if [ ! -e "$path" ]; then
+    userfail "does not exist: $path";
+fi
+
+# get absolute path to work with
+path=$(abspath "$path")
+
+if [[ "$path" != */jcr_root* ]]; then
+    userfail "not inside a vault checkout with a jcr_root base directory: $path"
+fi
+
+# if stdout goes to terminal we are interactive (isatty)
+if [ -t 1 ] ; then
+    isatty=true
+else
+    isatty=false
+fi
+
+# get jcr path after jcr_root
+filter=${path##*/jcr_root}
+
+rootpath=${path%/jcr_root*}/jcr_root
+
+if [[ $filter == "" ]]; then
+    filter="/"
+fi
+
+if [[ $filter == "/" ]]; then
+    userfail "refusing to work on repository root (would be too slow or overwrite everything)"
+fi
+
+# read config file (after $path was read from arguments)
+fromVlt=false
+repoCfg=$(find_up "$PWD" .repo)
+if [ -f "$repoCfg" ]; then
+    source "$repoCfg"
+# look for jcr_root/.vlt with repo url inside
+elif [ -f "$rootpath/.vlt" ]; then
+    url=$(unzip -p "$rootpath/.vlt" repository.url 2> /dev/null)
+    # pattern: http://localhost:4502/crx/server/-/jcr:root
+    # take part before /crx/server
+    server=${url%/crx/server*}
+    fromVlt=true
+fi
+
+# command line options take precedence
+server=${opt_server:-$server}
+credentials=${opt_credentials:-$credentials}
+force=${opt_force:-$force}
+quiet=${opt_quiet:-$quiet}
+if $quiet; then
+    verbose=false
+else
+    verbose=true
+fi
+
+if $fromVlt; then
+    print "Server $server taken from vault checkout $rootpath/.vlt"
+fi
+
+# get dirname and basename for each
+pathDirname=${path%/*}
+filterDirname=${filter%/*}
+pathBasename=${path##*/}
+filterBasename=${filter##*/}
+
+if [ -d "$path" ]; then
+    humanFilter=$filter/*
+else
+    humanFilter=$filter
+fi
+    
+if [ $action == "put" ]; then
+    print "uploading $humanFilter to $server"
+elif [ $action == "get" ]; then
+    print "downloading $humanFilter from $server"
+fi    
+
+# encode filter name in package name
+packageName="repo_${filter//[\/]/_}"
+# note: don't put : into the version string
+packageVersion=$(date +"%s")
+
+# prepare zip contents in temp directory
+tmpDir=`mktemp -d -t repo.XXX`
+
+# store list of excludes in a file for use by commands later
+excludes=$tmpDir/.excludes
+write_excludes $excludes
+
+create_pkg_meta_inf $tmpDir $filter $packageGroup $packageName $packageVersion
+
+pkg="$packageGroup/$packageName-$packageVersion.zip"
+
+# upload
+if [ $action == "put" ]; then
+
+    # copy local subtree into jcr_root, use rsync to exclude certain files
+    mkdir -p "$tmpDir/jcr_root$filterDirname"
+    rsync -avq --exclude-from=$excludes "$path" "$tmpDir/jcr_root$filterDirname"
+
+    # ensure the .excludes file is not zipped
+    rm -f $excludes
+
+    build_zip $tmpDir
+
+    if $verbose; then
+        unzip -l $zipfile | grep "   jcr_root$filter"
+    fi
+    
+    if ! $force; then
+        prompt "upload and overwrite on server?"
+    fi
+    
+    # upload and install
+    upload_pkg $zipfile
+    install_pkg $pkg
+    delete_pkg $pkg
+
+# download or diff
+elif [[ $action == "get" || $action == "diff" || $action == "status" ]]; then
+    
+    # empty package, just contains the filter
+    build_zip $tmpDir
+    
+    # upload and build on server
+    upload_pkg $zipfile
+    build_pkg $pkg
+    
+    # clear temp dir
+    rm -rf $tmpDir/*
+    
+    # download zip and extract in temp dir
+    download_pkg $pkg $zipfile
+    delete_pkg $pkg
+    
+    pushd $tmpDir > /dev/null
+    unzip -q pkg.zip
+    popd > /dev/null
+    
+    if [[ $action == "diff" || $action == "status" ]]; then
+        
+        diffbase=$tmpDir/.diffbase
+        mkdir "$diffbase"
+
+        # copy over local files to apply exclude list
+        mkdir -p "$diffbase/LOCAL$filterDirname"
+        rsync -avq --exclude-from=$excludes "$path" "$diffbase/LOCAL$filterDirname"
+
+        # symlink to unzipped remote content
+        ln -s $tmpDir/jcr_root $diffbase/REMOTE
+
+        # run diff inside base dir for relative paths
+        pushd $diffbase > /dev/null
+        
+        if [ $action == "diff" ]; then
+            do_diff $filter
+        else
+            # status
+            do_diff_stat $filter
+        fi
+        popd > /dev/null
+        
+    elif [ $action == "get" ]; then
+
+        if $verbose; then
+            unzip -l $zipfile | grep "   jcr_root$filter"
+        fi
+    
+        if ! $force; then
+            prompt "download and overwrite locally?"
+        fi
+    
+        # copy extracted content to local path
+        rsync -avq --delete --exclude-from=$excludes "$tmpDir/jcr_root/$filter" "$pathDirname"
+    
+        # if git checkout is present, show git status for the path
+        if $verbose && git rev-parse --git-dir > /dev/null 2>&1; then
+            echo "git status:"
+            git status -s "$path" 2> /dev/null
+        fi
+    fi
+    
+else
+    userfail "unknown command $action"
+fi
+
+if $verbose; then
+    if [[ -n "$opt_server" || -n "$opt_credentials" ]]; then
+        show_hint_repo_config
+    fi
+fi
+
+cleanup
