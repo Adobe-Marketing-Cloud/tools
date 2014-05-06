@@ -87,3 +87,82 @@ Examples:
 
 Use 'repo <command> -h' for help on a specific command.
 ```
+
+## repo put
+
+```
+Usage: repo put [opts] [<path>]
+
+Upload local file system content to server for the given path.
+
+Arguments:
+  <path>             local directory or file to sync; defaults to current dir
+
+Options:
+  -h --help          show this help
+  -s <server>        server, defaults to 'http://localhost:4502'
+                     include context path if needed
+  -u <user>:<pwd>    user and password, defaults to 'admin:admin'
+  -f                 force, don't ask for confirmation
+  -q                 quiet, don't output anything
+```
+
+## repo get
+
+```
+Usage: repo get [opts] [<path>]
+
+Download server content to local filesystem for the given path.
+
+Arguments:
+  <path>             local directory or file to sync; defaults to current dir
+
+Options:
+  -h --help          show this help
+  -s <server>        server, defaults to 'http://localhost:4502'
+                     include context path if needed
+  -u <user>:<pwd>    user and password, defaults to 'admin:admin'
+  -f                 force, don't ask for confirmation
+  -q                 quiet, don't output anything
+```
+
+## repo status
+
+```
+Usage: repo status [opts] [<path>]
+
+List status of files compared to the server at the given path.
+
+Arguments:
+  <path>             local directory or file to sync; defaults to current dir
+
+Options:
+  -h --help          show this help
+  -s <server>        server, defaults to 'http://localhost:4502'
+                     include context path if needed
+  -u <user>:<pwd>    user and password, defaults to 'admin:admin'
+
+Status legend:
+  M                  modified
+  A                  added locally / deleted remotely
+  D                  removed locally / added remotely
+  ~ fd               conflict: local file vs. remote directory
+  ~ df               conflict: local directory vs. remote file
+```
+
+## repo diff
+
+```
+Usage: repo diff [opts] [<path>]
+
+Show differences between local filesystem and server at the given path.
+
+Arguments:
+  <path>             local directory or file to sync; defaults to current dir
+
+Options:
+  -h --help          show this help
+  -s <server>        server, defaults to 'http://localhost:4502'
+                     include context path if needed
+  -u <user>:<pwd>    user and password, defaults to 'admin:admin'
+```
