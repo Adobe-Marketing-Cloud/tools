@@ -81,7 +81,9 @@ function show_help_global() {
     echo
     echo "Examples:"
     echo
-    echo "  (1) Start from scratch, working on /apps/project"
+    echo "  Assume a running CQ server on http://localhost:4502"
+    echo
+    echo "  (1) Start from scratch, working on /apps/project available on server"
     echo
     echo "      mkdir -p jcr_root/apps/project  # jcr_root is important"
     echo "      repo get jcr_root/apps/project  # fetch /apps/project"
