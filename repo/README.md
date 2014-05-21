@@ -8,7 +8,7 @@ It will take the given path and push that entire subtree to the server (or vice-
 
 ## Installation
 
-`repo` is a single bash script depending on basic unit tools (zip, unzip, curl, rsync, mktemp). Download and put it onto your `PATH`.
+`repo` is a single bash script depending on basic unix tools (zip, unzip, curl, rsync, mktemp). Download and put it onto your `PATH`.
 
 Supported platforms:
 
