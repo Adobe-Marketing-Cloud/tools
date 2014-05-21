@@ -54,7 +54,9 @@ Config files:
 
 Examples:
 
-  (1) Start from scratch, working on /apps/project
+  Assume a running CQ server on http://localhost:4502
+
+  (1) Start from scratch, working on /apps/project available on server
 
       mkdir -p jcr_root/apps/project  # jcr_root is important
       repo get jcr_root/apps/project  # fetch /apps/project
