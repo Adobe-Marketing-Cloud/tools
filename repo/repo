@@ -242,9 +242,17 @@ function find_up () {
 
 # -- creating package zips -----------------------------------------------------
 
+function filesystem_to_jcr() {
+    # convert filesystem to JCR paths to be used as filters in content pkg
+    local filter=$1
+    # remove .content.xml from the end
+    filter=${filter%%/.content.xml}
+    echo $filter
+}
+
 function create_pkg_meta_inf() {
     local base=$1
-    local filter=$2
+    local filter=$(filesystem_to_jcr $2)
     local pkgGroup=$3
     local pkgName=$4
     local pkgVersion=$5
