@@ -1,7 +1,7 @@
 # repo - Script for JCR content synchronization
 
 Uploads or downloads JCR content from a local filesystem to a server.
-Simple replacement for the `vlt` tool from [jackrabbit-filevault](http://jackrabbit.apache.org/filevault/overview.html) that does not use Java and is very fast.
+Simple replacement for the `vlt` tool from [jackrabbit-filevault](http://jackrabbit.apache.org/filevault/overview.html), written in plain bash instead of Java and is very fast.
 
 It will take the given path and push that entire subtree to the server (or vice-versa), while overwriting everything below. It assumes an unzipped content package as file system structure, with a `jcr_root` folder denoting the root of the JCR. It does not require or support multiple filter paths and vlt's `filter.xml`.
 
