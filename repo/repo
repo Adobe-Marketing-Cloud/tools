@@ -295,7 +295,7 @@ EOF
     cat "$rootpath/.repoignore" >> "$1" 2> /dev/null
 
     # 3. individual subfolder ignore files
-    for ignoreFile in `find $path -name .vltignore`; do
+    for ignoreFile in `find "$path" -name .vltignore`; do
         # find the relative path from execution base path to the ignore file
         # and add that as prefix to the rules from the file
         local relPath=${ignoreFile%/*}/
