@@ -252,7 +252,7 @@ function filesystem_to_jcr() {
 
 function create_pkg_meta_inf() {
     local base=$1
-    local filter=$(filesystem_to_jcr $2)
+    local filter=$(filesystem_to_jcr "$2")
     local pkgGroup=$3
     local pkgName=$4
     local pkgVersion=$5
@@ -320,8 +320,9 @@ function curl_http() {
 }
 
 function pkg_mgr_http() {
-    if [[ $(curl_http "$2") != *\"success\":true* ]]; then
-        fail "failed to $1 package" 5
+    out=$(curl_http "$2")
+    if [[ $out != *\"success\":true* ]]; then
+        fail "failed to $1 package: $out" 5
     fi
 }
 
@@ -523,7 +524,7 @@ elif [ $action == "get" ]; then
 fi    
 
 # encode filter name in package name
-packageName="repo_${filter//[\/]/_}"
+packageName="repo_${filter//[\/\- ]/_}"
 # note: don't put : into the version string
 packageVersion=$(date +"%s")
 
@@ -534,7 +535,7 @@ tmpDir=`mktemp -d -t repo.XXX`
 excludes=$tmpDir/.excludes
 write_excludes $excludes
 
-create_pkg_meta_inf $tmpDir $filter $packageGroup $packageName $packageVersion
+create_pkg_meta_inf "$tmpDir" "$filter" "$packageGroup" "$packageName" "$packageVersion"
 
 pkg="$packageGroup/$packageName-$packageVersion.zip"
 
@@ -600,10 +601,10 @@ elif [[ $action == "get" || $action == "diff" || $action == "status" ]]; then
         pushd $diffbase > /dev/null
         
         if [ $action == "diff" ]; then
-            do_diff $filter
+            do_diff "$filter"
         else
             # status
-            do_diff_stat $filter
+            do_diff_stat "$filter"
         fi
         popd > /dev/null
         
