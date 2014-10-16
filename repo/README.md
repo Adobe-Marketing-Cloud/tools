@@ -5,6 +5,7 @@ Simple replacement for the `vlt` tool from [jackrabbit-filevault](http://jackrab
 
 It will take the given path and push that entire subtree to the server (or vice-versa), while overwriting everything below. It assumes an unzipped content package as file system structure, with a `jcr_root` folder denoting the root of the JCR. It does not require or support multiple filter paths and vlt's `filter.xml`.
 
+[Licensed under Apache 2.0](../LICENSE).
 
 ## Installation
 
