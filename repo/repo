@@ -18,9 +18,11 @@
 #                                                                             #
 ###############################################################################
 
+VERSION=1.1
+
 ###############################################################################
 #
-# repo // version 1.0
+# repo
 # Uploads or downloads JCR content from a local filesystem to a server.
 # Simple vlt replacement based on content packages & CRX packmgr HTTP API.
 #
@@ -403,6 +405,11 @@ fi
 # first argument is global help or action
 if [[ $1 == "-h" || $1 == "--help" || $1 == "help" ]]; then
     show_help_global
+    exit
+fi
+
+if [[ $1 == "-version" || $1 == "--version" ]]; then
+    echo "$PROGNAME version $VERSION"
     exit
 fi
 
