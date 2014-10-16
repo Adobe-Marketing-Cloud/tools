@@ -404,7 +404,7 @@ fi
 
 # first argument is global help or action
 if [[ $1 == "-h" || $1 == "--help" || $1 == "help" ]]; then
-    show_help_global
+    show_help_global | less -FX
     exit
 fi
 
@@ -427,7 +427,7 @@ while [ $# -gt 0 ]; do
     if [[ $1 == --* ]]; then
         opt=${1#*--}
         case $opt in
-            help)  show_help; exit ;;
+            help)  show_help | less -FX; exit ;;
             *)     userfail "Unrecognized option '--$opt'. See usage help with -h." ;;
         esac
         
@@ -438,7 +438,7 @@ while [ $# -gt 0 ]; do
             opt=${arg:0:1}
             arg=${arg:1}
             case $opt in
-                h)  show_help; exit ;;
+                h)  show_help | less -FX; exit ;;
                 s)  opt_server=$2; shift ;;
                 u)  opt_credentials="$2"; shift ;;
                 f)  opt_force=true ;;
