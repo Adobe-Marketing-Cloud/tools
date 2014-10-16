@@ -9,9 +9,20 @@ It will take the given path and push that entire subtree to the server (or vice-
 
 ## Installation
 
-Download [latest release](https://github.com/Adobe-Marketing-Cloud/tools/releases/latest).
+### Homebrew (Mac)
 
-`repo` is a single bash script depending on basic unix tools (zip, unzip, curl, rsync, mktemp). Download and put it onto your `PATH`.
+For [Homebrew](http://brew.sh) users it's available via the [adobe-marketing-cloud/brews tap](https://github.com/Adobe-Marketing-Cloud/homebrew-brews):
+```
+brew tap adobe-marketing-cloud/brews
+brew install adobe-marketing-cloud/brews/repo
+```
+
+### Manual installation
+
+`repo` is a single bash script depending on basic unix tools (zip, unzip, curl, rsync, mktemp). Download and put it onto your `PATH`:
+
+[Download latest release](https://github.com/Adobe-Marketing-Cloud/tools/releases/latest).
+
 
 Supported platforms:
 
