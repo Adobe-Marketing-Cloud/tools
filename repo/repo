@@ -38,6 +38,7 @@ server="http://localhost:4502"
 credentials="admin:admin"
 force=false
 quiet=false
+inverseDiff=false
 packmgr="/crx/packmgr/service/.json"
 packageGroup="tmp/repo"
 
@@ -144,6 +145,9 @@ fi
 if [[ $action == "put" || $action == "get" ]]; then
     echo "  -f                 force, don't ask for confirmation"
     echo "  -q                 quiet, don't output anything"
+fi
+if [[ $action == "diff" ]]; then
+    echo "  -i                 inverse diff, to see incoming changes from the server"
 fi
 if [[ $action == "status" ]]; then
     echo
@@ -374,7 +378,7 @@ function do_diff() {
     # - sed: don't print file/directory conflicts in diff
     # - awk: colorize diff output (like git diff)
     # - less: page output (like git)
-    diff -rduNw "REMOTE$1" "LOCAL$1" |
+    diff -rduNw "$left$1" "$right$1" |
         sed -e       's/^File \([^ ]*\) is a regular file while file \(.*\)\.* is a directory$//g' \
             -e 's/^File \([^ ]*\) is a regular empty file while file \(.*\)\.* is a directory$//g' \
             -e       's/^File \([^ ]*\) is a directory while file \(.*\)\.* is a regular file$//g' \
@@ -443,6 +447,7 @@ while [ $# -gt 0 ]; do
                 u)  opt_credentials="$2"; shift ;;
                 f)  opt_force=true ;;
                 q)  opt_quiet=true ;;
+                i)  opt_inverseDiff=true;;
                 *)  userfail "Unrecognized option '-$opt'. See usage help with -h." ;;
             esac
         done
@@ -503,6 +508,7 @@ server=${opt_server:-$server}
 credentials=${opt_credentials:-$credentials}
 force=${opt_force:-$force}
 quiet=${opt_quiet:-$quiet}
+inverseDiff=${opt_inverseDiff:-$inverseDiff}
 if $quiet; then
     verbose=false
 else
@@ -609,6 +615,15 @@ elif [[ $action == "get" || $action == "diff" || $action == "status" ]]; then
         pushd $diffbase > /dev/null
         
         if [ $action == "diff" ]; then
+            # normal diff from remote point of view, what we've added locally
+            left="REMOTE"
+            right="LOCAL"
+            if inverseDiff; then
+                # inverse diff from local point of view, what has been added remotely
+                left="LOCAL"
+                right="REMOTE"
+            fi
+
             do_diff "$filter"
         else
             # status
