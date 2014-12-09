@@ -618,7 +618,7 @@ elif [[ $action == "get" || $action == "diff" || $action == "status" ]]; then
             # normal diff from remote point of view, what we've added locally
             left="REMOTE"
             right="LOCAL"
-            if inverseDiff; then
+            if $inverseDiff; then
                 # inverse diff from local point of view, what has been added remotely
                 left="LOCAL"
                 right="REMOTE"
