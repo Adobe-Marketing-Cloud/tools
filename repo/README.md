@@ -181,4 +181,5 @@ Options:
   -s <server>        server, defaults to 'http://localhost:4502'
                      include context path if needed
   -u <user>:<pwd>    user and password, defaults to 'admin:admin'
+  -i                 inverse diff, to see incoming changes from the server
 ```
