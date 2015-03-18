@@ -154,7 +154,7 @@ if [[ $action == "status" ]]; then
     echo "Status legend:"
     echo "  M                  modified"
     echo "  A                  added locally / deleted remotely"
-    echo "  D                  removed locally / added remotely"
+    echo "  D                  deleted locally / added remotely"
     echo "  ~ fd               conflict: local file vs. remote directory"
     echo "  ~ df               conflict: local directory vs. remote file"
 fi
