@@ -23,13 +23,37 @@ brew install adobe-marketing-cloud/brews/repo
 
 [Download latest release](https://github.com/Adobe-Marketing-Cloud/tools/releases/latest).
 
-
 Supported platforms:
 
 - Mac OSX (+ curl, rsync)
 - Linux (+ curl, rsync)
 - Windows with Cygwin (+ zip, unzip, curl, rsync packages)
 
+### Integration into IntelliJ
+
+Want to hit a shortcut like `ctrl + cmd + P` and have your current open file or selected folder pushed to the server from within IntelliJ? Without having to save or anything else? Just set up these tools below.
+
+Setup external tools under Settings > Tools > External Tools.
+Add a group "repo" and add commands below, leaving the "Working directory" empty.
+Keyboard shortcuts are managed under Settings > Keymap, search for "repo" after you created the external tool entries.
+Below are examples, your milage may vary.
+
+* put
+  * Program: `repo`
+  * Parameters: `put -f $FilePath$`
+  * Keyboard Shortcut: `ctrl + cmd + P`
+* get
+  * Program: `repo`
+  * Parameters: `get -f $FilePath$`
+  * Keyboard Shortcut: `ctrl + cmd + G` (note: already used by default keymap for grepping)
+* status
+  * Program: `repo`
+  * Parameters: `st $FilePath$`
+  * Keyboard Shortcut: `ctrl + cmd + S`
+* diff
+  * Program: `repo`
+  * Parameters: `diff $FilePath$`
+  * Keyboard Shortcut: `ctrl + cmd + D`
 
 
 ## Usage
