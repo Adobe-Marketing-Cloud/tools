@@ -57,7 +57,19 @@ Below are examples, your milage may vary.
 
 ### Integration into Eclipse
 
-TBD - should be similar to IntelliJ above, using Eclipse external tools, using the `${resource_loc}` variable for the absolute path to the currently selected file or folder
+Setup external tools under `Run > Exernal Tools > Exernal Tool Configurations...`.
+Add a Programm which points to the `repo` shell script for each desired REPO operation. 
+I would recommend to disable `Build before launch` in the Build tab.
+
+Examples:  
+* put
+  * Location: `/Applications/Dev/tools/repo-1.1/repo`
+  * Working Directory: `${container_loc}`
+  * Arguments: `put -f ${selected_resource_name}`
+* get
+  * Location: `/Applications/Dev/tools/repo-1.1/repo`
+  * Working Directory: `${container_loc}`
+  * Arguments: `get -f ${selected_resource_name}`
 
 ## Usage
 
