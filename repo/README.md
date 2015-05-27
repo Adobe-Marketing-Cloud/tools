@@ -55,6 +55,9 @@ Below are examples, your milage may vary.
   * Parameters: `diff $FilePath$`
   * Keyboard Shortcut: `ctrl + cmd + D`
 
+### Integration into Eclipse
+
+TBD - should be similar to IntelliJ above, using Eclipse external tools, using the `${resource_loc}` variable for the absolute path to the currently selected file or folder
 
 ## Usage
 
