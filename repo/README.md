@@ -87,7 +87,10 @@ Available commands:
   put                upload local file system content to server
   get                download server content to local file system
   status (st)        list status of modified/added/deleted files
-  diff               show differences between local filesystem and server
+  diff               show differences, same as 'localdiff'
+
+  localdiff          show differences done locally compared to server
+  serverdiff         show differences done on the server compared to local
 
 Config files:
 
@@ -143,13 +146,9 @@ Examples:
 Use 'repo <command> -h' for help on a specific command.
 ```
 
-## repo put
+## common options
 
 ```
-Usage: repo put [opts] [<path>]
-
-Upload local file system content to server for the given path.
-
 Arguments:
   <path>             local directory or file to sync; defaults to current dir
 
@@ -158,6 +157,16 @@ Options:
   -s <server>        server, defaults to 'http://localhost:4502'
                      include context path if needed
   -u <user>:<pwd>    user and password, defaults to 'admin:admin'
+```
+
+## repo put
+
+```
+Usage: repo put [opts] [<path>]
+
+Upload local file system content to server for the given path.
+
+Options:
   -f                 force, don't ask for confirmation
   -q                 quiet, don't output anything
 ```
@@ -169,14 +178,7 @@ Usage: repo get [opts] [<path>]
 
 Download server content to local filesystem for the given path.
 
-Arguments:
-  <path>             local directory or file to sync; defaults to current dir
-
 Options:
-  -h --help          show this help
-  -s <server>        server, defaults to 'http://localhost:4502'
-                     include context path if needed
-  -u <user>:<pwd>    user and password, defaults to 'admin:admin'
   -f                 force, don't ask for confirmation
   -q                 quiet, don't output anything
 ```
@@ -187,15 +189,6 @@ Options:
 Usage: repo status [opts] [<path>]
 
 List status of files compared to the server at the given path.
-
-Arguments:
-  <path>             local directory or file to sync; defaults to current dir
-
-Options:
-  -h --help          show this help
-  -s <server>        server, defaults to 'http://localhost:4502'
-                     include context path if needed
-  -u <user>:<pwd>    user and password, defaults to 'admin:admin'
 
 Status legend:
   M                  modified
@@ -210,15 +203,30 @@ Status legend:
 ```
 Usage: repo diff [opts] [<path>]
 
-Show differences between local filesystem and server at the given path.
+Show differences done locally compared to server at the given path.
 
-Arguments:
-  <path>             local directory or file to sync; defaults to current dir
+Same as 'localdiff', showing +++ if things were added locally.
+If you made changes on the server, use 'serverdiff' instead.
+```
 
-Options:
-  -h --help          show this help
-  -s <server>        server, defaults to 'http://localhost:4502'
-                     include context path if needed
-  -u <user>:<pwd>    user and password, defaults to 'admin:admin'
-  -i                 inverse diff, to see incoming changes from the server
+## repo localdiff
+
+```
+Usage: repo localdiff [opts] [<path>]
+
+Show differences done locally compared to server at the given path.
+
+Showing +++ if things were added locally (or removed on the server).
+If you made changes on the server, use 'serverdiff' instead.
+```
+
+## repo serverdiff
+
+```
+Usage: repo serverdiff [opts] [<path>]
+
+Show differences done on the server compared to local at the given path.
+
+Showing +++ if things were added on the server (or removed locally).
+If you made changes locally, use 'localdiff' instead.
 ```

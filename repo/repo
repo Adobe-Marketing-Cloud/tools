@@ -38,7 +38,6 @@ server="http://localhost:4502"
 credentials="admin:admin"
 force=false
 quiet=false
-inverseDiff=false
 packmgr="/crx/packmgr/service/.json"
 packageGroup="tmp/repo"
 
@@ -53,7 +52,10 @@ function show_help_commands() {
     echo "  put                upload local file system content to server"
     echo "  get                download server content to local file system"
     echo "  status (st)        list status of modified/added/deleted files"
-    echo "  diff               show differences between local filesystem and server"
+    echo "  diff               show differences, same as 'localdiff'"
+    echo
+    echo "  localdiff          show differences done locally compared to server"
+    echo "  serverdiff         show differences done on the server compared to local"
 }
 
 function show_help_global() {
@@ -131,7 +133,20 @@ elif [ $action == "get" ]; then
 elif [ $action == "status" ]; then
     echo "List status of files compared to the server at the given path."
 elif [ $action == "diff" ]; then
-    echo "Show differences between local filesystem and server at the given path."
+    echo "Show differences done locally compared to server at the given path."
+    echo
+    echo "Same as 'localdiff', showing +++ if things were added locally."
+    echo "If you made changes on the server, use 'serverdiff' instead."
+elif [ $action == "localdiff" ]; then
+    echo "Show differences done locally compared to server at the given path."
+    echo
+    echo "Showing +++ if things were added locally (or removed on the server)."
+    echo "If you made changes on the server, use 'serverdiff' instead."
+elif [ $action == "serverdiff" ]; then
+    echo "Show differences done on the server compared to local at the given path."
+    echo
+    echo "Showing +++ if things were added on the server (or removed locally)."
+    echo "If you made changes locally, use 'localdiff' instead."
 fi
     echo
     echo "Arguments:"
@@ -145,9 +160,6 @@ fi
 if [[ $action == "put" || $action == "get" ]]; then
     echo "  -f                 force, don't ask for confirmation"
     echo "  -q                 quiet, don't output anything"
-fi
-if [[ $action == "diff" ]]; then
-    echo "  -i                 inverse diff, to see incoming changes from the server"
 fi
 if [[ $action == "status" ]]; then
     echo
@@ -447,7 +459,6 @@ while [ $# -gt 0 ]; do
                 u)  opt_credentials="$2"; shift ;;
                 f)  opt_force=true ;;
                 q)  opt_quiet=true ;;
-                i)  opt_inverseDiff=true;;
                 *)  userfail "Unrecognized option '-$opt'. See usage help with -h." ;;
             esac
         done
@@ -508,11 +519,20 @@ server=${opt_server:-$server}
 credentials=${opt_credentials:-$credentials}
 force=${opt_force:-$force}
 quiet=${opt_quiet:-$quiet}
-inverseDiff=${opt_inverseDiff:-$inverseDiff}
 if $quiet; then
     verbose=false
 else
     verbose=true
+fi
+
+# mapping diff actions
+inverseDiff=false
+if [ $action == "localdiff" ]; then
+    action="diff";
+    inverseDiff=false
+elif [ $action == "serverdiff" ]; then
+    action="diff";
+    inverseDiff=true
 fi
 
 if $fromVlt; then
@@ -530,12 +550,12 @@ if [ -d "$path" ]; then
 else
     humanFilter=$filter
 fi
-    
+
 if [ $action == "put" ]; then
     print "uploading $humanFilter to $server"
 elif [ $action == "get" ]; then
     print "downloading $humanFilter from $server"
-fi    
+fi
 
 # encode filter name in package name
 packageName="repo_${filter//[\/\- ]/_}"
