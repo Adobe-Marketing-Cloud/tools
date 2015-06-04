@@ -39,7 +39,7 @@ Keyboard shortcuts are managed under Settings > Keymap, search for "repo" after 
 Below are examples, your milage may vary.
 
 * put
-  * Program: `repo`
+  * Program: `repo` (if in $PATH, you can also specify absolute path here)
   * Parameters: `put -f $FilePath$`
   * Keyboard Shortcut: `ctrl + cmd + P`
 * get
@@ -63,11 +63,11 @@ I would recommend to disable `Build before launch` in the Build tab.
 
 Examples:  
 * put
-  * Location: `/Applications/Dev/tools/repo-1.1/repo`
+  * Location: `<install-path>/repo`
   * Working Directory: `${container_loc}`
   * Arguments: `put -f ${selected_resource_name}`
 * get
-  * Location: `/Applications/Dev/tools/repo-1.1/repo`
+  * Location: `<install-path>/repo`
   * Working Directory: `${container_loc}`
   * Arguments: `get -f ${selected_resource_name}`
 
