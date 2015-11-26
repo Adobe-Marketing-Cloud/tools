@@ -266,6 +266,8 @@ function filesystem_to_jcr() {
     local filter=$1
     # remove .content.xml from the end
     filter=${filter%%/.content.xml}
+    # rename _cq_* paths to cq:* - used in filters
+    filter=${filter/_cq_/cq:}
     echo $filter
 }
 
