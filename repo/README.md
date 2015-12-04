@@ -14,6 +14,7 @@ It will take the given path and push that entire subtree to the server (or vice-
 For [Homebrew](http://brew.sh) users it's available via the [adobe-marketing-cloud/brews tap](https://github.com/Adobe-Marketing-Cloud/homebrew-brews):
 ```
 brew tap adobe-marketing-cloud/brews
+brew install homebrew/dupes/rsync
 brew install adobe-marketing-cloud/brews/repo
 ```
 
