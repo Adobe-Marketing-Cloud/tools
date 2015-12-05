@@ -61,11 +61,16 @@ function show_help_commands() {
 function show_help_global() {
     echo "Usage: $PROGNAME <command> [opts] [<path>]"
     echo
-    echo "Uploads or downloads JCR content from a local filesystem to a server."
+    echo "FTP-like tool for JCR content, with support for diffing."
     echo
-    echo "Takes a given path inside a jcr_root/ filevault structure as single filter"
-    echo "to either upload or download that file or subtree using a content package."
-    echo "Note in case of a directory, it will be entirely overwritten."
+    echo "Transfers filevault JCR content between the filesystem (unzipped content package)"
+    echo "and a server such as AEM (running the package manager HTTP API)."
+    echo
+    echo "For a given path inside a jcr_root filevault structure on the filesystem, it"
+    echo "creates a package with a single filter for the entire subtree and pushes that to"
+    echo "the server (put), fetches it from the server (get) or compares the differences"
+    echo "(status and diff). Please note that it will always overwrite the entire file or"
+    echo "directory specified. Does not support multiple filter paths or vlt's filter.xml."
     echo
     show_help_commands
     echo

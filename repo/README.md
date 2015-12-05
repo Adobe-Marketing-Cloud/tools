@@ -1,9 +1,10 @@
-# repo - Script for JCR content synchronization
+# repo - FTP-like tool for JCR content
 
-Uploads or downloads JCR content from a local filesystem to a server.
-Simple replacement for the `vlt` tool from [jackrabbit-filevault](http://jackrabbit.apache.org/filevault/overview.html), written in plain bash instead of Java and is very fast.
+Transfers filevault JCR content between the filesystem (unzipped content package) and a server such as AEM (running the package manager HTTP API).
 
-It will take the given path and push that entire subtree to the server (or vice-versa), while overwriting everything below. It assumes an unzipped content package as file system structure, with a `jcr_root` folder denoting the root of the JCR. It does not require or support multiple filter paths and vlt's `filter.xml`.
+Similar to the `vlt` command line tool from [jackrabbit-filevault](http://jackrabbit.apache.org/filevault/overview.html), but faster, bash-script-only and with minimal dependencies.
+
+For a given path inside a `jcr_root` filevault structure on the filesystem, it creates a package with a single filter for the entire subtree and pushes that to the server (put), fetches it from the server (get) or compares the differences (status and diff). Please note that it will always overwrite the entire file or directory specified. Does not support multiple filter paths or vlt's filter.xml.
 
 [Licensed under Apache 2.0](../LICENSE).
 
@@ -76,11 +77,16 @@ Examples:
 ```
 Usage: repo <command> [opts] [<path>]
 
-Uploads or downloads JCR content from a local filesystem to a server.
+FTP-like tool for JCR content, with support for diffing.
 
-Takes a given path inside a jcr_root/ filevault structure as single filter
-to either upload or download that file or subtree using a content package.
-Note in case of a directory, it will be entirely overwritten.
+Transfers filevault JCR content between the filesystem (unzipped content package)
+and a server such as AEM (running the package manager HTTP API).
+
+For a given path inside a jcr_root filevault structure on the filesystem, it
+creates a package with a single filter for the entire subtree and pushes that to
+the server (put), fetches it from the server (get) or compares the differences
+(status and diff). Please note that it will always overwrite the entire file or
+directory specified. Does not support multiple filter paths or vlt's filter.xml.
 
 Available commands:
 
