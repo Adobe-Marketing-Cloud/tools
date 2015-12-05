@@ -271,6 +271,18 @@ function filesystem_to_jcr() {
     local filter=$1
     # remove .content.xml from the end
     filter=${filter%%/.content.xml}
+    # remove any .xml from the end
+    filter=${filter%%.xml}
+    # rename known namespaces prefixes from _ns_* to ns:*
+    filter=${filter//_jcr_/jcr:}
+    filter=${filter//_rep_/rep:}
+    filter=${filter//_oak_/oak:}
+    filter=${filter//_sling_/sling:}
+    filter=${filter//_granite_/granite:}
+    filter=${filter//_cq_/cq:}
+    filter=${filter//_dam_/dam:}
+    filter=${filter//_exif_/exif:}
+    filter=${filter//_social_/social:}
     echo $filter
 }
 
