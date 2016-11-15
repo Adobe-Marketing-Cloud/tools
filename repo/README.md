@@ -1,6 +1,6 @@
 # repo - FTP-like tool for JCR content
 
-Transfers filevault JCR content between the filesystem (unzipped content package) and a server such as AEM (running the package manager HTTP API).
+Transfers filevault JCR content between the filesystem (unzipped content package) and a server such as AEM (running the package manager HTTP API). Great for development.
 
 Similar to the `vlt` command line tool from [jackrabbit-filevault](http://jackrabbit.apache.org/filevault/overview.html), but faster, bash-script-only and with minimal dependencies.
 
