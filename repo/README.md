@@ -4,7 +4,7 @@ Transfers filevault JCR content between the filesystem (unzipped content package
 
 Similar to the `vlt` command line tool from [jackrabbit-filevault](http://jackrabbit.apache.org/filevault/overview.html), but faster, bash-script-only and with minimal dependencies.
 
-For a given path inside a `jcr_root` filevault structure on the filesystem, it creates a package with a single filter for the entire subtree and pushes that to the server (put), fetches it from the server (get) or compares the differences (status and diff). Please note that it will always overwrite the entire file or directory specified. Does not support multiple filter paths or vlt's filter.xml.
+How it works: For a given path inside a `jcr_root` filevault structure on the filesystem, it creates a package with a single filter for the entire subtree and pushes that to the server (put), fetches it from the server (get) or compares the differences (status and diff). Please note that it will always overwrite the entire file or directory specified. Does not support multiple filter paths or vlt's filter.xml.
 
 [Licensed under Apache 2.0](../LICENSE).
 
