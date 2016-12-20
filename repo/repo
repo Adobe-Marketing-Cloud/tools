@@ -99,6 +99,12 @@ function show_help_global() {
     echo "      mkdir -p jcr_root/apps/project  # jcr_root is important"
     echo "      repo get jcr_root/apps/project  # fetch /apps/project"
     echo
+    echo "      --- OR --   "
+    echo
+    echo "      mkdir -p apps/project           "
+    echo "      touch .jcr_root                 # signifies that current dir is jcr_root"
+    echo "      repo get apps/project           # fetch /apps/project"
+    echo
     echo "  (2) Upload changes to server"
     echo
     echo "      cd jcr_root/apps/project"
@@ -263,6 +269,15 @@ function find_up () {
         dir=${dir%/*}
     done
 }
+
+# find ancestor directory containing file .jcr_root
+function find_root_dir(){
+   filepath=$(find_up $1 .jcr_root)
+   if [[ -n "$filepath" ]]; then
+      echo $(dirname $filepath)
+   fi
+}
+
 
 # -- creating package zips -----------------------------------------------------
 
@@ -493,7 +508,10 @@ fi
 # get absolute path to work with
 path=$(abspath "$path")
 
-if [[ "$path" != */jcr_root* ]]; then
+# find REPO_ROOT_DIR if not already set
+REPO_ROOT_DIR=${REPO_ROOT_DIR:-$(find_root_dir $path)}
+
+if [[ "$path" != */jcr_root* && (-z "$REPO_ROOT_DIR" ||  $(echo "$path" | grep -qv "^$REPO_ROOT_DIR")) ]]; then
     userfail "not inside a vault checkout with a jcr_root base directory: $path"
 fi
 
@@ -504,10 +522,15 @@ else
     isatty=false
 fi
 
+if [[ "$path" != "*/jcr_root*" ]]; then
+  filter=${path##$REPO_ROOT_DIR}
+  rootpath=$REPO_ROOT_DIR
+else
 # get jcr path after jcr_root
 filter=${path##*/jcr_root}
 
 rootpath=${path%/jcr_root*}/jcr_root
+fi
 
 if [[ $filter == "" ]]; then
     filter="/"
