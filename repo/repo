@@ -139,7 +139,7 @@ if [ $action == "checkout" ]; then
     echo "Initially check out <jcr-path> from server on the file system."
     echo
     echo "This will create a jcr_root folder in the current directory and check"
-    echo "out the <jcr-path> in there. If this is called with a jcr_root or"
+    echo "out the <jcr-path> in there. If this is called within a jcr_root or"
     echo "a jcr_root exists within the current directory, it will detect that"
     echo "and check out the <jcr-path> in there."
 elif [ $action == "put" ]; then
