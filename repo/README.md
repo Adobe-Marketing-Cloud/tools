@@ -62,7 +62,8 @@ Setup external tools under `Run > Exernal Tools > Exernal Tool Configurations...
 Add a Programm which points to the `repo` shell script for each desired REPO operation. 
 I would recommend to disable `Build before launch` in the Build tab.
 
-Examples:  
+Examples:
+
 * put
   * Location: `<install-path>/repo`
   * Working Directory: `${container_loc}`
@@ -90,6 +91,7 @@ directory specified. Does not support multiple filter paths or vlt's filter.xml.
 
 Available commands:
 
+  checkout           intial checkout of server content on file system
   put                upload local file system content to server
   get                download server content to local file system
   status (st)        list status of modified/added/deleted files
@@ -120,8 +122,7 @@ Examples:
 
   (1) Start from scratch, working on /apps/project available on server
 
-      mkdir -p jcr_root/apps/project  # jcr_root is important
-      repo get jcr_root/apps/project  # fetch /apps/project
+      repo checkout /apps/project
 
   (2) Upload changes to server
 
@@ -163,6 +164,22 @@ Options:
   -s <server>        server, defaults to 'http://localhost:4502'
                      include context path if needed
   -u <user>:<pwd>    user and password, defaults to 'admin:admin'
+```
+
+## repo checkout
+
+```
+Usage: repo checkout [opts] [<jcr-path>]
+
+Initially check out <jcr-path> from server on the file system.
+
+This will create a jcr_root folder in the current directory and check
+out the <jcr-path> in there. If this is called within a jcr_root or
+a jcr_root exists within the current directory, it will detect that
+and check out the <jcr-path> in there.
+
+Arguments:
+  <jcr-path>         jcr path to checkout (should be a folder)
 ```
 
 ## repo put
