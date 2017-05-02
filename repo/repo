@@ -49,6 +49,7 @@ readonly PROGNAME=$(basename $0)
 function show_help_commands() {
     echo "Available commands:"
     echo
+    echo "  checkout           intial checkout of server content on file system"
     echo "  put                upload local file system content to server"
     echo "  get                download server content to local file system"
     echo "  status (st)        list status of modified/added/deleted files"
@@ -96,8 +97,7 @@ function show_help_global() {
     echo
     echo "  (1) Start from scratch, working on /apps/project available on server"
     echo
-    echo "      mkdir -p jcr_root/apps/project  # jcr_root is important"
-    echo "      repo get jcr_root/apps/project  # fetch /apps/project"
+    echo "      repo checkout /apps/project"
     echo
     echo "  (2) Upload changes to server"
     echo
@@ -129,9 +129,20 @@ function show_help_global() {
 }
 
 function show_help() {
+if [ $action == "checkout" ]; then
+    echo "Usage: $PROGNAME $action [opts] [<jcr-path>]"
+else
     echo "Usage: $PROGNAME $action [opts] [<path>]"
+fi
     echo
-if [ $action == "put" ]; then
+if [ $action == "checkout" ]; then
+    echo "Initially check out <jcr-path> from server on the file system."
+    echo
+    echo "This will create a jcr_root folder in the current directory and check"
+    echo "out the <jcr-path> in there. If this is called with a jcr_root or"
+    echo "a jcr_root exists within the current directory, it will detect that"
+    echo "and check out the <jcr-path> in there."
+elif [ $action == "put" ]; then
     echo "Upload local file system content to server for the given path."
 elif [ $action == "get" ]; then
     echo "Download server content to local filesystem for the given path."
@@ -154,8 +165,13 @@ elif [ $action == "serverdiff" ]; then
     echo "If you made changes locally, use 'localdiff' instead."
 fi
     echo
+if [ $action == "checkout" ]; then
+    echo "Arguments:"
+    echo "  <jcr-path>         jcr path to checkout (should be a folder)"
+else
     echo "Arguments:"
     echo "  <path>             local directory or file to sync; defaults to current dir"
+fi
     echo
     echo "Options:"
     echo "  -h --help          show this help"
@@ -446,11 +462,22 @@ if [[ $1 == "-version" || $1 == "--version" ]]; then
     exit
 fi
 
+# if stdout goes to terminal we are interactive (isatty)
+if [ -t 1 ] ; then
+    isatty=true
+else
+    isatty=false
+fi
+
 action=$1
 shift
 
 # alias
 if [ $action == "st" ]; then action="status"; fi
+
+if [[ $action == "checkout" && $# -eq 0 ]]; then
+    userfail "checkout requires a jcr path as argument"
+fi
 
 # parse arguments
 path=$PWD
@@ -486,29 +513,55 @@ while [ $# -gt 0 ]; do
     shift
 done
 
-if [ ! -e "$path" ]; then
-    userfail "does not exist: $path";
-fi
+if [ $action == "checkout" ]; then
+    # special checkout init steps
+    # path argument must be a jcr path
+    filter="$path"
 
-# get absolute path to work with
-path=$(abspath "$path")
+    # check if there is a jcr_root
+    if [[ "$PWD" == */jcr_root* ]]; then
+        rootpath=${PWD%/jcr_root*}/jcr_root
+        echo "checking out into existing $rootpath"
+        echo
+    elif [ -e jcr_root ]; then
+        rootpath=${PWD}/jcr_root
+        echo "checking out into existing $rootpath"
+        echo
+    else
+        mkdir jcr_root
+        rootpath=${PWD}/jcr_root
+        echo "checking out into new $rootpath"
+        echo
+    fi
 
-if [[ "$path" != */jcr_root* ]]; then
-    userfail "not inside a vault checkout with a jcr_root base directory: $path"
-fi
+    path="$rootpath$filter"
+    mkdir -p "$path"
 
-# if stdout goes to terminal we are interactive (isatty)
-if [ -t 1 ] ; then
-    isatty=true
+    # from here on, same as get
+    action="get"
+
 else
-    isatty=false
+    # get, put, diff, etc.
+    # path argument is a file system path, jcr path must be deducted
+
+    if [ ! -e "$path" ]; then
+        userfail "does not exist: $path";
+    fi
+
+    # get absolute path to work with
+    path=$(abspath "$path")
+
+    if [[ "$path" != */jcr_root* ]]; then
+        userfail "not inside a vault checkout with a jcr_root base directory: $path"
+    fi
+
+    # get jcr path after jcr_root
+    filter=${path##*/jcr_root}
+
+    rootpath=${path%/jcr_root*}/jcr_root
 fi
 
-# get jcr path after jcr_root
-filter=${path##*/jcr_root}
-
-rootpath=${path%/jcr_root*}/jcr_root
-
+# filter validation
 if [[ $filter == "" ]]; then
     filter="/"
 fi
