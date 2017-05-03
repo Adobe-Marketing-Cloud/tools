@@ -171,7 +171,7 @@ Options:
 ```
 Usage: repo checkout [opts] [<jcr-path>]
 
-Initially check out <jcr-path> from server on the file system.
+Initially check out <jcr-path> from the server on the file system.
 
 This will create a jcr_root folder in the current directory and check
 out the <jcr-path> in there. If this is called within a jcr_root or
