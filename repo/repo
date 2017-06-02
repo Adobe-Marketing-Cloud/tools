@@ -299,6 +299,8 @@ function filesystem_to_jcr() {
     filter=${filter//_dam_/dam:}
     filter=${filter//_exif_/exif:}
     filter=${filter//_social_/social:}
+
+    filter=${filter//&/\&amp;}
     echo $filter
 }
 
@@ -308,7 +310,9 @@ function create_pkg_meta_inf() {
     local pkgGroup=$3
     local pkgName=$4
     local pkgVersion=$5
-    
+
+    pkgName=${pkgName//&/\&amp;}
+
     mkdir -p "$base/META-INF/vault"
     mkdir -p "$base/jcr_root"
 
