@@ -17,6 +17,7 @@ Official release versions are [tracked here on github](https://github.com/Adobe-
 For [Homebrew](http://brew.sh) users releases are available via the [adobe-marketing-cloud/brews tap](https://github.com/Adobe-Marketing-Cloud/homebrew-brews):
 ```
 brew tap adobe-marketing-cloud/brews
+brew install homebrew/dupes/rsync
 brew install adobe-marketing-cloud/brews/repo
 ```
 
