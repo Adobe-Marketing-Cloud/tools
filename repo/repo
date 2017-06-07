@@ -282,6 +282,10 @@ function find_up () {
 
 # -- creating package zips -----------------------------------------------------
 
+function urldecode() {
+    printf '%b' "${1//%/\\x}"
+}
+
 function filesystem_to_jcr() {
     # convert filesystem to JCR paths to be used as filters in content pkg
     local filter=$1
@@ -300,10 +304,14 @@ function filesystem_to_jcr() {
     filter=${filter//_exif_/exif:}
     filter=${filter//_social_/social:}
 
+    # URL decoding as per PlatformNameFormat.java in jackrabbit-filevault
+    filter=$(urldecode $filter)
+
     echo $filter
 }
 
-function escape_xml_name() {
+# xml escaping
+function to_xml() {
     local name=$1
     name=${name//&/\&amp;}
     name=${name//</\&lt;}
@@ -315,9 +323,9 @@ function escape_xml_name() {
 
 function create_pkg_meta_inf() {
     local base=$1
-    local filter=$(escape_xml_name $(filesystem_to_jcr "$2"))
+    local filter=$(filesystem_to_jcr "$2")
     local pkgGroup=$3
-    local pkgName=$(escape_xml_name $4)
+    local pkgName=$4
     local pkgVersion=$5
 
     mkdir -p "$base/META-INF/vault"
@@ -326,7 +334,7 @@ function create_pkg_meta_inf() {
     cat > "$base/META-INF/vault/filter.xml" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <workspaceFilter version="1.0">
-    <filter root="$filter"/>
+    <filter root="$(to_xml $filter)"/>
 </workspaceFilter>
 EOF
 
@@ -334,9 +342,9 @@ EOF
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
 <properties>
-<entry key="name">$pkgName</entry>
-<entry key="version">$pkgVersion</entry>
-<entry key="group">$pkgGroup</entry>
+<entry key="name">$(to_xml $pkgName)</entry>
+<entry key="version">$(to_xml $pkgVersion)</entry>
+<entry key="group">$(to_xml $pkgGroup)</entry>
 </properties>
 EOF
 }
@@ -638,8 +646,9 @@ elif [ $action == "get" ]; then
     print "downloading $humanFilter from $server"
 fi
 
-# encode filter name in package name
-packageName="repo_${filter//[\/\- ]/_}"
+# base package name on filter path, keep only alphanumeric chars, dashes for slashes
+packageName="${filter//\//-}"
+packageName="repo${packageName//[^[:alpha:][:digit:].-]/}"
 # note: don't put : into the version string
 packageVersion=$(date +"%s")
 
