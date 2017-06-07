@@ -10,9 +10,11 @@ How it works: For a given path inside a `jcr_root` filevault structure on the fi
 
 ## Installation
 
+Official release versions are [tracked here on github](https://github.com/Adobe-Marketing-Cloud/tools/releases).
+
 ### Homebrew (Mac)
 
-For [Homebrew](http://brew.sh) users it's available via the [adobe-marketing-cloud/brews tap](https://github.com/Adobe-Marketing-Cloud/homebrew-brews):
+For [Homebrew](http://brew.sh) users releases are available via the [adobe-marketing-cloud/brews tap](https://github.com/Adobe-Marketing-Cloud/homebrew-brews):
 ```
 brew tap adobe-marketing-cloud/brews
 brew install adobe-marketing-cloud/brews/repo
@@ -20,9 +22,12 @@ brew install adobe-marketing-cloud/brews/repo
 
 ### Manual installation
 
-`repo` is a single bash script depending on basic unix tools (zip, unzip, curl, rsync, mktemp). Download and put it onto your `PATH`:
+`repo` is a single bash script depending on basic unix tools (zip, unzip, curl, rsync, mktemp).
 
-[Download latest release](https://github.com/Adobe-Marketing-Cloud/tools/releases/latest).
+Download and put it onto your `PATH`:
+
+* [Download latest release](https://github.com/Adobe-Marketing-Cloud/tools/releases/latest).
+* [Download latest beta](repo) - just the script directly from this github repository.
 
 Supported platforms:
 
@@ -166,7 +171,7 @@ Options:
   -u <user>:<pwd>    user and password, defaults to 'admin:admin'
 ```
 
-## repo checkout
+## repo checkout (since 1.4)
 
 ```
 Usage: repo checkout [opts] [<jcr-path>]
