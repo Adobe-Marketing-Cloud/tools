@@ -42,7 +42,9 @@ Want to hit a shortcut like `ctrl + cmd + P` and have your current open file or 
 Setup external tools under Settings > Tools > External Tools.
 Add a group "repo" and add commands below, leaving the "Working directory" empty.
 Keyboard shortcuts are managed under Settings > Keymap, search for "repo" after you created the external tool entries.
-Below are examples, your milage may vary.
+Below shortcuts are examples, your milage may vary.
+
+#### Mac:
 
 * put
   * Program: `repo` (if in $PATH, you can also specify absolute path here)
@@ -60,6 +62,26 @@ Below are examples, your milage may vary.
   * Program: `repo`
   * Parameters: `diff $FilePath$`
   * Keyboard Shortcut: `ctrl + cmd + D`
+
+#### Windows:
+
+Cygwin is required, and repo must be called explicitly using Cygwin's `bash`.
+
+* put
+  * Program: `<path-to-cygwin>\bin\bash` - for example: `C:\cygwin64\bin\bash`
+  * Parameters: `-l repo put -f $FilePath$`
+
+* get
+  * Program: `<path-to-cygwin>\bin\bash`
+  * Parameters: `-l repo get -f $FilePath$`
+
+* status
+  * Program: `<path-to-cygwin>\bin\bash`
+  * Parameters: `-l repo st $FilePath$`
+
+* diff
+  * Program: `<path-to-cygwin>\bin\bash`
+  * Parameters: `-l repo diff $FilePath$`
 
 ### Integration into Eclipse
 
