@@ -8,6 +8,23 @@ How it works: For a given path inside a `jcr_root` filevault structure on the fi
 
 [Licensed under Apache 2.0](../LICENSE).
 
+## Table of Contents
+
+* [Installation](#installation)
+  * [Homebrew (Mac)](#homebrew-mac)
+  * [Manual installation](#manual-installation)
+  * [Integration into IntelliJ](#integration-into-intellij)
+  * [Integration into Eclipse](#integration-into-eclipse)
+* [Usage](#usage)
+  * [common options](#common-options)
+  * [repo checkout (since 1.4)](#repo-checkout-since-14)
+  * [repo put](#repo-put)
+  * [repo get](#repo-get)
+  * [repo status](#repo-status)
+  * [repo diff](#repo-diff)
+  * [repo localdiff](#repo-localdiff)
+  * [repo serverdiff](#repo-serverdiff)
+
 ## Installation
 
 Official release versions are [tracked here on github](https://github.com/Adobe-Marketing-Cloud/tools/releases).
