@@ -41,7 +41,7 @@ brew install adobe-marketing-cloud/brews/repo
 
 `repo` is a single bash script depending on basic unix tools (zip, unzip, curl, rsync, mktemp).
 
-Download and put it onto your `PATH`:
+Download and put it onto your `$PATH`:
 
 * [Download latest release](https://github.com/Adobe-Marketing-Cloud/tools/releases/latest).
 * [Download latest beta](repo) - just the script directly from this github repository.
@@ -64,7 +64,7 @@ Below shortcuts are examples, your milage may vary.
 #### Mac:
 
 * put
-  * Program: `repo` (if in $PATH, you can also specify absolute path here)
+  * Program: `repo` (if in `$PATH`, otherwise use the absolute path to repo here)
   * Parameters: `put -f $FilePath$`
   * Keyboard Shortcut: `ctrl + cmd + P`
 * get
@@ -83,6 +83,8 @@ Below shortcuts are examples, your milage may vary.
 #### Windows:
 
 Cygwin is required, and repo must be called explicitly using Cygwin's `bash`.
+
+Make sure the folder containing `repo` is in cygwin's `$PATH` variable. Alternatively replace `-l repo` in the parameters below with the full absolute path, for example `-l c:\repoinstallfolder\repo`.
 
 * put
   * Program: `<path-to-cygwin>\bin\bash` - for example: `C:\cygwin64\bin\bash`
