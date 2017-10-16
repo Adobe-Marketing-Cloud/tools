@@ -5,21 +5,27 @@ Requirements: push rights for [Adobe-Marketing-Cloud/tools](https://github.com/A
 
 Steps:
 
-1. prepare github release (if it does not exist yet)
+1. **prepare** github release (if a draft does not exist yet)
    - go to [releases](https://github.com/Adobe-Marketing-Cloud/tools/releases) and "Draft a new release"
    - title: `repo VERSION` (e.g. `repo 1.4`)
    - description: list changes with sections "New" & "Fixes" (check github issues & commits)
    - save as draft
-2. bump up `VERSION=` in script to release number
+   
+2. bump up `VERSION=` in script to **release version**
    - e.g. `1.4-beta` to `1.4`
    - commit
-3. edit github release
+   
+3. **publish** github release
 
    - set tag to `repo-VERSION` (e.g. `repo-1.4`)
    - attach repo script file (the just tagged version) as release binary
    - save and publish release
    
-4. update homebrew formula (on OSX), based on [this guide](http://thecoatlessprofessor.com/programming/updating-a-homebrew-formula/) and the cheatsheet [here](https://github.com/Homebrew/homebrew-core/blob/master/CONTRIBUTING.md) (section "Contribute a fix to the foo formula")
+4. bump up `VERSION=` in script to **next beta version**
+   - e.g. `1.4` to `1.5-beta`
+   - commit
+
+5. **update homebrew formula** (on OSX), based on [this guide](http://thecoatlessprofessor.com/programming/updating-a-homebrew-formula/) and the cheatsheet [here](https://github.com/Homebrew/homebrew-core/blob/master/CONTRIBUTING.md) (section "Contribute a fix to the foo formula")
    
    - `brew update`
    - `cd $(brew --repo adobe-marketing-cloud/brews)`
