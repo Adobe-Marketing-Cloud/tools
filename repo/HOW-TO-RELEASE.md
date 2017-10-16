@@ -32,6 +32,7 @@ Steps:
    - `brew test repo.rb`
    - `repo --version` should return VERSION
    - `brew audit --strict --online repo.rb`
+   - check if everything is fine and returns no errors
    - `git add repo.rb`
    - `git commit -m "updating repo to VERSION"` (e.g. 1.4)
    - `git push`
