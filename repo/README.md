@@ -15,6 +15,7 @@ How it works: For a given path inside a `jcr_root` filevault structure on the fi
   * [Manual installation](#manual-installation)
   * [Integration into IntelliJ](#integration-into-intellij)
   * [Integration into Eclipse](#integration-into-eclipse)
+  * [Integration into Visual Studio Code](#integration-into-visual-studio-code)
 * [Usage](#usage)
   * [common options](#common-options)
   * [repo checkout (since 1.4)](#repo-checkout-since-14)
@@ -118,6 +119,80 @@ Examples:
   * Location: `<install-path>/repo`
   * Working Directory: `${container_loc}`
   * Arguments: `get -f ${selected_resource_name}`
+
+### Integration into Visual Studio Code
+
+Configure custom tasks under `Terminal > Configure Tasks... > Create tasks.json file from template > Others`.
+This will create a `tasks.json` beneath a `.vscode` directory in the current workspace.
+
+Below are examples for tasks using `repo`, assuming `repo` has been added and available at the terminal path. *Note, variables available are scoped to the current opened file. See [Variables Reference](https://code.visualstudio.com/docs/editor/variables-reference) for more info.
+
+```
+// .vscode/tasks.json
+{
+    // examples of using repo to push and pull files and folders from a server running at localhost:4502
+    // the tasks with folders actions will be perfomed on the folder of the current file open in the editor
+    // see https://code.visualstudio.com/docs/editor/variables-reference for more details
+    
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "put file",
+            "type": "shell",
+            "command": "repo put -f ${file}",
+            "problemMatcher": []
+        },
+        {
+            "label": "put folder",
+            "type": "shell",
+            "command": "repo put -f ${fileDirname}",
+            "problemMatcher": []
+        },
+        {
+            "label": "get file",
+            "type": "shell",
+            "command": "repo get -f ${file}",
+            "problemMatcher": []
+        },
+        {
+            "label": "get folder",
+            "type": "shell",
+            "command": "repo get -f ${fileDirname}",
+            "problemMatcher": []
+        }
+    ]
+}
+```
+Keyboard shortcuts can be created under `Code > Preferences > Keyboard Shortcuts > edit keybindings.json`
+
+Below are examples of keyboard shortcuts to trigger the custom tasks, Your mileage may vary. 
+
+```
+// keybindings.json
+// keyboard shortcuts for repo tasks
+[
+    {
+        "key": "cmd+left",
+        "command": "workbench.action.tasks.runTask",
+        "args": "put file"
+    },
+    {
+        "key": "cmd+f cmd+left",
+        "command": "workbench.action.tasks.runTask",
+        "args": "put folder"
+    },
+    {
+        "key": "cmd+right",
+        "command": "workbench.action.tasks.runTask",
+        "args": "get file"
+    },
+    {
+        "key": "cmd+f cmd+right",
+        "command": "workbench.action.tasks.runTask",
+        "args": "get folder"
+    }
+]
+```
 
 ## Usage
 
