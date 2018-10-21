@@ -125,7 +125,9 @@ Examples:
 Configure custom tasks under `Terminal > Configure Tasks... > Create tasks.json file from template > Others`.
 This will create a `tasks.json` beneath a `.vscode` directory in the current workspace.
 
-Below are examples for tasks using `repo`, assuming `repo` has been added and available at the terminal path. *Note, variables available are scoped to the current opened file. See [Variables Reference](https://code.visualstudio.com/docs/editor/variables-reference) for more info.
+Below are examples for tasks using `repo`, assuming `repo` has been added and available at the terminal path. 
+
+*Note, variables available are scoped to the current opened file. See [Variables Reference](https://code.visualstudio.com/docs/editor/variables-reference) for more info.*
 
 ```
 // .vscode/tasks.json
@@ -165,29 +167,33 @@ Below are examples for tasks using `repo`, assuming `repo` has been added and av
 ```
 Keyboard shortcuts can be created under `Code > Preferences > Keyboard Shortcuts > edit keybindings.json`
 
-Below are examples of keyboard shortcuts to trigger the custom tasks, Your mileage may vary. 
+Below are examples of keyboard shortcuts to trigger the custom tasks, your mileage may vary. 
 
 ```
 // keybindings.json
 // keyboard shortcuts for repo tasks
 [
     {
-        "key": "cmd+left",
+        "key": "ctrl+cmd+p",
         "command": "workbench.action.tasks.runTask",
         "args": "put file"
     },
     {
-        "key": "cmd+f cmd+left",
+        "key": "shift+cmd+p",
         "command": "workbench.action.tasks.runTask",
         "args": "put folder"
     },
     {
-        "key": "cmd+right",
+        "key": "ctrl+cmd+g",
+        "command": "commandId",
+        "when": "editorTextFocus"
+    },{
+        "key": "ctrl+cmd+g",
         "command": "workbench.action.tasks.runTask",
         "args": "get file"
     },
-    {
-        "key": "cmd+f cmd+right",
+   {
+        "key": "shift+cmd+g",
         "command": "workbench.action.tasks.runTask",
         "args": "get folder"
     }
