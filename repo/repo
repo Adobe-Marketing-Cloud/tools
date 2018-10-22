@@ -1,5 +1,4 @@
 #!/bin/bash
-
 ###############################################################################
 #                                                                             #
 # Copyright 2014 Adobe                                                        #
@@ -286,6 +285,12 @@ function urldecode() {
     printf '%b' "${1//%/\\x}"
 }
 
+function jcr_to_filesystem() {
+    local jcrPath=$1
+    # Handle namespaces and a default empty one
+    echo ${jcrPath} | sed -e 's#\/\([^:]*\):#/_\1_#g' | sed -e 's#/:#/#g'
+}
+
 function filesystem_to_jcr() {
     # convert filesystem to JCR paths to be used as filters in content pkg
     local filter=$1
@@ -323,7 +328,7 @@ function to_xml() {
 
 function create_pkg_meta_inf() {
     local base=$1
-    local filter=$(filesystem_to_jcr "$2")
+    local filter=$2
     local pkgGroup=$3
     local pkgName=$4
     local pkgVersion=$5
@@ -535,7 +540,8 @@ done
 if [ $action == "checkout" ]; then
     # special checkout init steps
     # path argument must be a jcr path
-    filter="$path"
+    jcrFilter="$path"
+    fsFilter=$(jcr_to_filesystem "$path")
 
     # check if there is a jcr_root
     if [[ "$PWD" == */jcr_root* ]]; then
@@ -553,12 +559,11 @@ if [ $action == "checkout" ]; then
         echo
     fi
 
-    path="$rootpath$filter"
+    path="$rootpath$fsFilter"
     mkdir -p "$path"
 
     # from here on, same as get
     action="get"
-
 else
     # get, put, diff, etc.
     # path argument is a file system path, jcr path must be deducted
@@ -577,15 +582,18 @@ else
     # get jcr path after jcr_root
     filter=${path##*/jcr_root}
 
+    # Deducting JCR path
+    fsFilter="${filter}"
+    jcrFilter=$(filesystem_to_jcr "${filter}")
     rootpath=${path%/jcr_root*}/jcr_root
 fi
 
 # filter validation
-if [[ $filter == "" ]]; then
-    filter="/"
+if [[ "$jcrFilter" == "" ]]; then
+    jcrFilter="/"
 fi
 
-if [[ $filter == "/" ]]; then
+if [[ "$jcrFilter" == "/" ]]; then
     userfail "refusing to work on repository root (would be too slow or overwrite everything)"
 fi
 
@@ -627,17 +635,16 @@ fi
 if $fromVlt; then
     print "Server $server taken from vault checkout $rootpath/.vlt"
 fi
-
 # get dirname and basename for each
 pathDirname=${path%/*}
-filterDirname=${filter%/*}
+filterDirname=${fsFilter%/*}
 pathBasename=${path##*/}
-filterBasename=${filter##*/}
+filterBasename=${fsFilter##*/}
 
 if [ -d "$path" ]; then
-    humanFilter=$filter/*
+    humanFilter=$fsFilter/*
 else
-    humanFilter=$filter
+    humanFilter=$jcrFilter
 fi
 
 if [ $action == "put" ]; then
@@ -659,7 +666,7 @@ tmpDir=`mktemp -d -t repo.XXX`
 excludes=$tmpDir/.excludes
 write_excludes $excludes
 
-create_pkg_meta_inf "$tmpDir" "$filter" "$packageGroup" "$packageName" "$packageVersion"
+create_pkg_meta_inf "$tmpDir" "$jcrFilter" "$packageGroup" "$packageName" "$packageVersion"
 
 pkg="$packageGroup/$packageName-$packageVersion.zip"
 
@@ -676,7 +683,7 @@ if [ $action == "put" ]; then
     build_zip $tmpDir
 
     if $verbose; then
-        unzip -l $zipfile | grep "   jcr_root$filter"
+        unzip -l $zipfile | grep "   jcr_root$fsFilter"
     fi
     
     if ! $force; then
@@ -734,17 +741,17 @@ elif [[ $action == "get" || $action == "diff" || $action == "status" ]]; then
                 right="REMOTE"
             fi
 
-            do_diff "$filter"
+            do_diff "$fsFilter"
         else
             # status
-            do_diff_stat "$filter"
+            do_diff_stat "$fsFilter"
         fi
         popd > /dev/null
         
     elif [ $action == "get" ]; then
 
         if $verbose; then
-            unzip -l $zipfile | grep "   jcr_root$filter"
+            unzip -l $zipfile | grep "   jcr_root$fsFilter"
         fi
     
         if ! $force; then
@@ -752,7 +759,7 @@ elif [[ $action == "get" || $action == "diff" || $action == "status" ]]; then
         fi
     
         # copy extracted content to local path
-        rsync -avq --delete --exclude-from=$excludes "$tmpDir/jcr_root/$filter" "$pathDirname"
+        rsync -avq --delete --exclude-from=$excludes "$tmpDir/jcr_root/$fsFilter" "$pathDirname"
     
         # if git checkout is present, show git status for the path
         if $verbose && git rev-parse --git-dir > /dev/null 2>&1; then
