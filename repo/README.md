@@ -83,25 +83,29 @@ Below shortcuts are examples, your milage may vary.
 
 #### Windows:
 
-Cygwin is required, and repo must be called explicitly using Cygwin's `bash`.
+Cygwin or Windows Subsystem for Linux is required, and repo must be called explicitly using Cygwin's or Linux's `bash`.
 
-Make sure the folder containing `repo` is in cygwin's `$PATH` variable. Alternatively replace `-l repo` in the parameters below with the full absolute path, for example `-l c:\repoinstallfolder\repo`.
+Make sure the folder containing `repo` is in Windows' `$Path` variable. Alternatively replace `repoWrapper.ps1` in the parameters below with the full absolute path, for example `C:\tools\repoWrapper.ps1`.
 
 * put
-  * Program: `<path-to-cygwin>\bin\bash` - for example: `C:\cygwin64\bin\bash`
-  * Parameters: `-l repo put -f $FilePath$`
+  * Program: `powershell`
+  * Parameters: `repoWrapper.ps1 put mnt $FilePath$`
+  * Keyboard Shortcut: `Ctrl + Alt + Shift + Q`
 
 * get
-  * Program: `<path-to-cygwin>\bin\bash`
-  * Parameters: `-l repo get -f $FilePath$`
+  * Program: `powershell`
+  * Parameters: `repoWrapper.ps1 get mnt $FilePath$`
+  * Keyboard Shortcut: `Ctrl + Alt + Shift + R`
 
 * status
-  * Program: `<path-to-cygwin>\bin\bash`
-  * Parameters: `-l repo st $FilePath$`
+  * Program: `powershell`
+  * Parameters: `repoWrapper.ps1 status mnt $FilePath$`
+  * Keyboard Shortcut: `Ctrl + Alt + Shift + Y`
 
 * diff
-  * Program: `<path-to-cygwin>\bin\bash`
-  * Parameters: `-l repo diff $FilePath$`
+  * Program: `powershell`
+  * Parameters: `repoWrapper.ps1 diff mnt $FilePath$`
+  * Keyboard Shortcut: `Ctrl + Alt + Shift + E`
 
 ### Integration into Eclipse
 

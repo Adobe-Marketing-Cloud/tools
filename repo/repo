@@ -532,18 +532,6 @@ while [ $# -gt 0 ]; do
     shift
 done
 
-# Running in either Windows Linux subsystem shell or Cygwin bash:
-# - the assumption is that the backslashes in the path have already been converted to forward slashes.
-if [[ $path =~  ^[A-Z]: ]]; then
-    rematch=${BASH_REMATCH[0]} # BASH_REMATCH is undefined inside the nested if
-    drive=${rematch,,} # lower case
-    if [[ $(uname) =~ CYGWIN_NT.* ]]; then
-        path=${path/${rematch}/\/cygdrive\/${drive/:/}}
-    else
-        path=${path/${rematch}/\/mnt\/${drive/:/}}
-    fi
-fi
-
 if [ $action == "checkout" ]; then
     # special checkout init steps
     # path argument must be a jcr path
