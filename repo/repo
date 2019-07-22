@@ -532,6 +532,18 @@ while [ $# -gt 0 ]; do
     shift
 done
 
+# Running in either Windows Linux subsystem shell or Cygwin bash:
+# - the assumption is that the backslashes in the path have already been converted to forward slashes.
+if [[ $path =~  ^[A-Z]: ]]; then
+    rematch=${BASH_REMATCH[0]} # BASH_REMATCH is undefined inside the nested if
+    drive=${rematch,,} # lower case
+    if [[ $(uname) =~ CYGWIN_NT.* ]]; then
+        path=${path/${rematch}/\/cygdrive\/${drive/:/}}
+    else
+        path=${path/${rematch}/\/mnt\/${drive/:/}}
+    fi
+fi
+
 if [ $action == "checkout" ]; then
     # special checkout init steps
     # path argument must be a jcr path
@@ -653,7 +665,11 @@ packageName="repo${packageName//[^[:alpha:][:digit:].-]/}"
 packageVersion=$(date +"%s")
 
 # prepare zip contents in temp directory
-tmpDir=`mktemp -d -t repo.XXX`
+if [[ $(uname) =~ CYGWIN_NT.* ]]; then
+    tmpDir=`mktemp -d -p .. -t repo.XXX`
+else
+    tmpDir=`mktemp -d -t repo.XXX`
+fi
 
 # store list of excludes in a file for use by commands later
 excludes=$tmpDir/.excludes
