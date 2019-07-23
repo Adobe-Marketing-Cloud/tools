@@ -3,23 +3,16 @@
 
 Param($command, $drive, $path)
 
-function Get-ScriptDirectory {
-    Split-Path -parent $PSCommandPath
-}
-
 if (Test-Path $path) {
-    $cmdPath = Get-ScriptDirectory
-    $path = $($path -replace '\\','/')
+    $path = ($path -replace '\\','/')
     $path = ($path -replace '.:',"/$drive/c")
 
     if ($drive -ne "cygdrive") {
-        $cmdPath = $($cmdPath -replace '\\','/')
-        $cmdPath = ($cmdPath -replace '.:',"/$drive/c")
-
-        $ret = $(bash -l "$cmdPath/repo" $command -f $path)
+        bash -l repo $command -f $path
     } 
     else {
-        $ret = (C:\cygwin64\bin\bash.exe -l "$cmdPath\repo" $command -f $path)
+        $cmdPath = (Split-Path -parent $PSCommandPath)
+        C:\cygwin64\bin\bash.exe -l "$cmdPath\repo" $command -f $path
     }
 }
 else {
