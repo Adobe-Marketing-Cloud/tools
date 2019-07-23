@@ -6,12 +6,15 @@ Param($command, $drive, $path)
 if (Test-Path $path) {
     $path = ($path -replace '\\','/')
     $path = ($path -replace '.:',"/$drive/c")
+    $cmdPath = (Split-Path -parent $PSCommandPath)
 
     if ($drive -ne "cygdrive") {
-        bash -l repo $command -f $path
+        $cmdPath = $($cmdPath -replace '\\','/')
+        $cmdPath = ($cmdPath -replace '.:',"/$drive/c")
+
+        bash -l "$cmdPath/repo" $command -f $path
     } 
     else {
-        $cmdPath = (Split-Path -parent $PSCommandPath)
         C:\cygwin64\bin\bash.exe -l "$cmdPath\repo" $command -f $path
     }
 }

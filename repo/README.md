@@ -83,28 +83,30 @@ Below shortcuts are examples, your milage may vary.
 
 #### Windows:
 
-Cygwin or Windows Subsystem for Linux (WSL) is required, and repo must be called explicitly using Cygwin's or WSL's `bash`. The examples below are for WSL. In order to use Cygwin, replace `mnt` with `cygdrive` as the second parameter for repoWrapper.ps1.
+Cygwin or Windows Subsystem for Linux (WSL) is required, and repo must be called explicitly using Cygwin's or WSL's `bash`. The examples below are for WSL.
+* In order to use Cygwin, replace `mnt` with `cygdrive` as the second parameter for `repoWin.ps1`. 
+* `repoWin.ps1` makes an assumption that Cygwin is installed under `C:\cygwin64`.
 
-Make sure the folder containing `repo` is in Windows' `$Path` variable. Alternatively replace `repoWrapper.ps1` in the parameters below with the full absolute path, for example `C:\tools\repoWrapper.ps1`.
+Make sure the folder containing `repo` is in Windows' `$Path` variable. Alternatively replace `repoWin.ps1` in the parameters below with the full absolute path, for example `C:\tools\repoWin.ps1`.
 
 * put
   * Program: `powershell`
-  * Parameters: `repoWrapper.ps1 put mnt $FilePath$`
+  * Parameters: `repoWin.ps1 put mnt $FilePath$`
   * Keyboard Shortcut: `Ctrl + Alt + Shift + Q`
 
 * get
   * Program: `powershell`
-  * Parameters: `repoWrapper.ps1 get mnt $FilePath$`
+  * Parameters: `repoWin.ps1 get mnt $FilePath$`
   * Keyboard Shortcut: `Ctrl + Alt + Shift + R`
 
 * status
   * Program: `powershell`
-  * Parameters: `repoWrapper.ps1 status mnt $FilePath$`
+  * Parameters: `repoWin.ps1 status mnt $FilePath$`
   * Keyboard Shortcut: `Ctrl + Alt + Shift + Y`
 
 * diff
   * Program: `powershell`
-  * Parameters: `repoWrapper.ps1 diff mnt $FilePath$`
+  * Parameters: `repoWin.ps1 diff mnt $FilePath$`
   * Keyboard Shortcut: `Ctrl + Alt + Shift + E`
 
 ### Integration into Eclipse
