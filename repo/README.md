@@ -83,7 +83,7 @@ Below shortcuts are examples, your milage may vary.
 
 #### Windows:
 
-Cygwin or Windows Subsystem for Linux is required, and repo must be called explicitly using Cygwin's or Linux's `bash`.
+Cygwin or Windows Subsystem for Linux (WSL) is required, and repo must be called explicitly using Cygwin's or WSL's `bash`. The examples below are for WSL. In order to use Cygwin, replace `mnt` with `cygdrive` as the second parameter for repoWrapper.ps1.
 
 Make sure the folder containing `repo` is in Windows' `$Path` variable. Alternatively replace `repoWrapper.ps1` in the parameters below with the full absolute path, for example `C:\tools\repoWrapper.ps1`.
 
