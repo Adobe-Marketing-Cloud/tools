@@ -83,30 +83,44 @@ Below shortcuts are examples, your milage may vary.
 
 #### Windows:
 
-Cygwin or Windows Subsystem for Linux (WSL) is required, and repo must be called explicitly using Cygwin's or WSL's `bash`. The examples below are for WSL.
-* In order to use Cygwin, replace `mnt` with `cygdrive` as the second parameter for `repoWin.ps1`. 
-* `repoWin.ps1` makes an assumption that Cygwin is installed under `C:\cygwin64`.
+Cygwin or Windows Subsystem for Linux (WSL) are required, and repo must be called explicitly using Cygwin's or WSL's `bash`.
 
 Make sure the folder containing `repo` is in Windows' `$Path` variable. Alternatively replace `repoWin.ps1` in the parameters below with the full absolute path, for example `C:\tools\repoWin.ps1`.
 
 * put
   * Program: `powershell`
-  * Parameters: `repoWin.ps1 put mnt $FilePath$`
+  * Parameters: `repoWin.ps1 put $FilePath$`
   * Keyboard Shortcut: `Ctrl + Alt + Shift + Q`
-
 * get
   * Program: `powershell`
-  * Parameters: `repoWin.ps1 get mnt $FilePath$`
+  * Parameters: `repoWin.ps1 get $FilePath$`
   * Keyboard Shortcut: `Ctrl + Alt + Shift + R`
-
 * status
   * Program: `powershell`
-  * Parameters: `repoWin.ps1 status mnt $FilePath$`
+  * Parameters: `repoWin.ps1 status $FilePath$`
   * Keyboard Shortcut: `Ctrl + Alt + Shift + Y`
-
 * diff
   * Program: `powershell`
-  * Parameters: `repoWin.ps1 diff mnt $FilePath$`
+  * Parameters: `repoWin.ps1 diff $FilePath$`
+  * Keyboard Shortcut: `Ctrl + Alt + Shift + E`
+
+An alternative way to run `repo` under Cygwin is to make sure the path to Cygwin installation directory is the first on the `$Path` variable list and provide the following external tools settings:
+
+* put
+  * Program: `bash` (use the absolute path to `bash` here)
+  * Parameters: `repo put -f $FilePath$` (use the absolute path to `repo` here)
+  * Keyboard Shortcut: `Ctrl + Alt + Shift + Q`
+* get
+  * Program: `bash`
+  * Parameters: `repo get -f $FilePath$`
+  * Keyboard Shortcut: `Ctrl + Alt + Shift + R`
+* status
+  * Program: `bash`
+  * Parameters: `repo st $FilePath$`
+  * Keyboard Shortcut: `Ctrl + Alt + Shift + Y`
+* diff
+  * Program: `bash`
+  * Parameters: `repo diff $FilePath$`
   * Keyboard Shortcut: `Ctrl + Alt + Shift + E`
 
 ### Integration into Eclipse
