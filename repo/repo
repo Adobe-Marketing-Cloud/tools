@@ -40,7 +40,12 @@ force=false
 quiet=false
 packmgr="/crx/packmgr/service/.json"
 packageGroup="tmp/repo"
+publish=""
 
+# NB; if the publish config has a value the program will attempt to deploy
+#     packages to both server and publish URLs when the 'put' action is used
+#     for all other commands the publish config is ignored.
+#     to see the current configuration use $ repo --config
 
 # -- help output ---------------------------------------------------------------
 
@@ -377,10 +382,10 @@ EOF
 
 function build_zip() {
     # zip must be executed inside the dir for the right paths in the zip
-    pushd "$1" > /dev/null    
+    pushd "$1" > /dev/null
     zip -q -r pkg.zip .
     popd > /dev/null
-    
+
     zipfile="$1/pkg.zip"
 }
 
@@ -399,18 +404,30 @@ function pkg_mgr_http() {
 
 function upload_pkg() {
     pkg_mgr_http "upload" "-F package=@$1 -F force=true $server$packmgr?cmd=upload"
+    if [[ -n $publish ]]; then
+        pkg_mgr_http "upload" "-F package=@$1 -F force=true $publish$packmgr?cmd=upload"
+    fi
 }
 
 function install_pkg() {
     pkg_mgr_http "install" "-X POST $server$packmgr/etc/packages/$1?cmd=install"
+    if [[ -n $publish ]]; then
+        pkg_mgr_http "install" "-X POST $publish$packmgr/etc/packages/$1?cmd=install"
+    fi
 }
 
 function build_pkg() {
     pkg_mgr_http "build" "-X POST $server$packmgr/etc/packages/$1?cmd=build"
+    if [[ -n $publish ]]; then
+        pkg_mgr_http "build" "-X POST $publish$packmgr/etc/packages/$1?cmd=build"
+    fi
 }
 
 function delete_pkg() {
     pkg_mgr_http "build" "-X POST $server$packmgr/etc/packages/$1?cmd=delete"
+    if [[ -n $publish ]]; then
+        pkg_mgr_http "build" "-X POST $publish$packmgr/etc/packages/$1?cmd=delete"
+    fi
 }
 
 function download_pkg() {
@@ -509,7 +526,7 @@ while [ $# -gt 0 ]; do
             help)  show_help | less -FX; exit ;;
             *)     userfail "Unrecognized option '--$opt'. See usage help with -h." ;;
         esac
-        
+
     # -o options, can be combined: -fq
     elif [[ $1 == -* ]]; then
         arg=${1#*-}
@@ -614,6 +631,18 @@ else
     verbose=true
 fi
 
+if [[ $action == "config" || $action == "-config" || $action == "--config" ]]; then
+    echo "$PROGNAME current config;"
+    echo "  server=$server"
+    echo "  credentials=$credentials"
+    echo "  force=$force"
+    echo "  quiet=$quiet"
+    echo "  packmgr=$packmgr"
+    echo "  packageGroup=$packageGroup"
+    echo "  publish=$publish"
+    exit
+fi
+
 # mapping diff actions
 inverseDiff=false
 if [ $action == "localdiff" ]; then
@@ -678,11 +707,11 @@ if [ $action == "put" ]; then
     if $verbose; then
         unzip -l $zipfile | grep "   jcr_root$filter"
     fi
-    
+
     if ! $force; then
         prompt "upload and overwrite on server?"
     fi
-    
+
     # upload and install
     upload_pkg $zipfile
     install_pkg $pkg
@@ -690,27 +719,27 @@ if [ $action == "put" ]; then
 
 # download or diff
 elif [[ $action == "get" || $action == "diff" || $action == "status" ]]; then
-    
+
     # empty package, just contains the filter
     build_zip $tmpDir
-    
+
     # upload and build on server
     upload_pkg $zipfile
     build_pkg $pkg
-    
+
     # clear temp dir
     rm -rf $tmpDir/*
-    
+
     # download zip and extract in temp dir
     download_pkg $pkg $zipfile
     delete_pkg $pkg
-    
+
     pushd $tmpDir > /dev/null
     unzip -q pkg.zip
     popd > /dev/null
-    
+
     if [[ $action == "diff" || $action == "status" ]]; then
-        
+
         diffbase=$tmpDir/.diffbase
         mkdir "$diffbase"
 
@@ -723,7 +752,7 @@ elif [[ $action == "get" || $action == "diff" || $action == "status" ]]; then
 
         # run diff inside base dir for relative paths
         pushd $diffbase > /dev/null
-        
+
         if [ $action == "diff" ]; then
             # normal diff from remote point of view, what we've added locally
             left="REMOTE"
@@ -740,27 +769,27 @@ elif [[ $action == "get" || $action == "diff" || $action == "status" ]]; then
             do_diff_stat "$filter"
         fi
         popd > /dev/null
-        
+
     elif [ $action == "get" ]; then
 
         if $verbose; then
             unzip -l $zipfile | grep "   jcr_root$filter"
         fi
-    
+
         if ! $force; then
             prompt "download and overwrite locally?"
         fi
-    
+
         # copy extracted content to local path
         rsync -avq --delete --exclude-from=$excludes "$tmpDir/jcr_root/$filter" "$pathDirname"
-    
+
         # if git checkout is present, show git status for the path
         if $verbose && git rev-parse --git-dir > /dev/null 2>&1; then
             echo "git status:"
             git status -s "$path" 2> /dev/null
         fi
     fi
-    
+
 else
     userfail "unknown command $action"
 fi
