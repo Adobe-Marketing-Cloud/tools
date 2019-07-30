@@ -400,34 +400,28 @@ function pkg_mgr_http() {
     if [[ $out != *\"success\":true* ]]; then
         fail "failed to $1 package: $out" 5
     fi
+    if [[ -n $publish && -n $3 ]]; then
+        out=$(curl_http "${2/$server/$publish}")
+        if [[ $out != *\"success\":true* ]]; then
+            fail "failed to $1 package: $out" 5
+        fi
+    fi
 }
 
 function upload_pkg() {
-    pkg_mgr_http "upload" "-F package=@$1 -F force=true $server$packmgr?cmd=upload"
-    if [[ -n $publish ]]; then
-        pkg_mgr_http "upload" "-F package=@$1 -F force=true $publish$packmgr?cmd=upload"
-    fi
+    pkg_mgr_http "upload" "-F package=@$1 -F force=true $server$packmgr?cmd=upload" $2
 }
 
 function install_pkg() {
-    pkg_mgr_http "install" "-X POST $server$packmgr/etc/packages/$1?cmd=install"
-    if [[ -n $publish ]]; then
-        pkg_mgr_http "install" "-X POST $publish$packmgr/etc/packages/$1?cmd=install"
-    fi
+    pkg_mgr_http "install" "-X POST $server$packmgr/etc/packages/$1?cmd=install" $2
 }
 
 function build_pkg() {
-    pkg_mgr_http "build" "-X POST $server$packmgr/etc/packages/$1?cmd=build"
-    if [[ -n $publish ]]; then
-        pkg_mgr_http "build" "-X POST $publish$packmgr/etc/packages/$1?cmd=build"
-    fi
+    pkg_mgr_http "build" "-X POST $server$packmgr/etc/packages/$1?cmd=build" $2
 }
 
 function delete_pkg() {
-    pkg_mgr_http "build" "-X POST $server$packmgr/etc/packages/$1?cmd=delete"
-    if [[ -n $publish ]]; then
-        pkg_mgr_http "build" "-X POST $publish$packmgr/etc/packages/$1?cmd=delete"
-    fi
+    pkg_mgr_http "build" "-X POST $server$packmgr/etc/packages/$1?cmd=delete" $2
 }
 
 function download_pkg() {
@@ -712,10 +706,10 @@ if [ $action == "put" ]; then
         prompt "upload and overwrite on server?"
     fi
 
-    # upload and install
-    upload_pkg $zipfile
-    install_pkg $pkg
-    delete_pkg $pkg
+    # upload and install to server (and publish if set)
+    upload_pkg $zipfile true
+    install_pkg $pkg true
+    delete_pkg $pkg true
 
 # download or diff
 elif [[ $action == "get" || $action == "diff" || $action == "status" ]]; then
