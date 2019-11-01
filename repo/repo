@@ -50,6 +50,7 @@ function show_help_commands() {
     echo "Available commands:"
     echo
     echo "  checkout           intial checkout of server content on file system"
+    echo "  download           download zipped package of server content on file system"
     echo "  put                upload local file system content to server"
     echo "  get                download server content to local file system"
     echo "  status (st)        list status of modified/added/deleted files"
@@ -129,7 +130,7 @@ function show_help_global() {
 }
 
 function show_help() {
-if [ $action == "checkout" ]; then
+if [ $action == "checkout"  || $action == "download" ]; then
     echo "Usage: $PROGNAME $action [opts] [<jcr-path>]"
 else
     echo "Usage: $PROGNAME $action [opts] [<path>]"
@@ -142,6 +143,10 @@ if [ $action == "checkout" ]; then
     echo "out the <jcr-path> in there. If this is called within a jcr_root or"
     echo "a jcr_root exists within the current directory, it will detect that"
     echo "and check out the <jcr-path> in there."
+elif [ $action == "download" ]; then
+    echo "Download a zipped package containing <jcr-path> from the server on the file system."
+    echo
+    echo "This will create the zipped package in the current directory"
 elif [ $action == "put" ]; then
     echo "Upload local file system content to server for the given path."
 elif [ $action == "get" ]; then
@@ -165,7 +170,7 @@ elif [ $action == "serverdiff" ]; then
     echo "If you made changes locally, use 'localdiff' instead."
 fi
     echo
-if [ $action == "checkout" ]; then
+if [ $action == "checkout" || $action == "download" ]; then
     echo "Arguments:"
     echo "  <jcr-path>         jcr path to checkout (should be a folder)"
 else
@@ -366,13 +371,15 @@ EOF
     cat "$rootpath/.repoignore" >> "$1" 2> /dev/null
 
     # 3. individual subfolder ignore files
-    for ignoreFile in `find "$path" -name .vltignore`; do
-        # find the relative path from execution base path to the ignore file
-        # and add that as prefix to the rules from the file
-        local relPath=${ignoreFile%/*}/
-        relPath=${relPath#$path/}
-        cat $ignoreFile | sed -e "s,^,$relPath," >> "$1"
-    done
+    if [ -d "$path" ]; then
+        for ignoreFile in `find "$path" -name .vltignore`; do
+            # find the relative path from execution base path to the ignore file
+            # and add that as prefix to the rules from the file
+            local relPath=${ignoreFile%/*}/
+            relPath=${relPath#$path/}
+            cat $ignoreFile | sed -e "s,^,$relPath," >> "$1"
+        done
+    fi
 }
 
 function build_zip() {
@@ -498,6 +505,10 @@ if [[ $action == "checkout" && $# -eq 0 ]]; then
     userfail "checkout requires a jcr path as argument"
 fi
 
+if [[ $action == "download" && $# -eq 0 ]]; then
+    userfail "download requires a jcr path as argument"
+fi
+
 # parse arguments
 path=$PWD
 
@@ -558,7 +569,9 @@ if [ $action == "checkout" ]; then
 
     # from here on, same as get
     action="get"
-
+elif [ $action == "download" ]; then
+    # path argument must be a jcr path
+    filter="$path"
 else
     # get, put, diff, etc.
     # path argument is a file system path, jcr path must be deducted
@@ -642,7 +655,7 @@ fi
 
 if [ $action == "put" ]; then
     print "uploading $humanFilter to $server"
-elif [ $action == "get" ]; then
+elif [[ $action == "get" || $action == "download" ]]; then
     print "downloading $humanFilter from $server"
 fi
 
@@ -689,7 +702,7 @@ if [ $action == "put" ]; then
     delete_pkg $pkg
 
 # download or diff
-elif [[ $action == "get" || $action == "diff" || $action == "status" ]]; then
+elif [[ $action == "get" || $action == "diff" || $action == "status"  || $action == "download" ]]; then
     
     # empty package, just contains the filter
     build_zip $tmpDir
@@ -702,12 +715,20 @@ elif [[ $action == "get" || $action == "diff" || $action == "status" ]]; then
     rm -rf $tmpDir/*
     
     # download zip and extract in temp dir
-    download_pkg $pkg $zipfile
+
+    if [[ $action == "download" ]]; then
+        download_pkg $pkg $packageName-$packageVersion.zip
+    else
+        download_pkg $pkg $zipfile
+    fi
     delete_pkg $pkg
     
-    pushd $tmpDir > /dev/null
-    unzip -q pkg.zip
-    popd > /dev/null
+    # download zip and extract in temp dir
+    if [[ $action != "download" ]]; then
+        pushd $tmpDir > /dev/null
+        unzip -q pkg.zip
+        popd > /dev/null
+    fi
     
     if [[ $action == "diff" || $action == "status" ]]; then
         
