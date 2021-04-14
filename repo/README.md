@@ -89,19 +89,19 @@ Make sure the folder containing `repo` is in cygwin's `$PATH` variable. Alternat
 
 * put
   * Program: `<path-to-cygwin>\bin\bash` - for example: `C:\cygwin64\bin\bash`
-  * Parameters: `-l repo put -f $FilePath$`
+  * Parameters: `-l repo put -f "$UnixSeparators($FilePath$)$"`
 
 * get
   * Program: `<path-to-cygwin>\bin\bash`
-  * Parameters: `-l repo get -f $FilePath$`
+  * Parameters: `-l repo get -f "$UnixSeparators($FilePath$)$"`
 
 * status
   * Program: `<path-to-cygwin>\bin\bash`
-  * Parameters: `-l repo st $FilePath$`
+  * Parameters: `-l repo st "$UnixSeparators($FilePath$)$"`
 
 * diff
   * Program: `<path-to-cygwin>\bin\bash`
-  * Parameters: `-l repo diff $FilePath$`
+  * Parameters: `-l repo diff "$UnixSeparators($FilePath$)$"`
 
 ### Integration into Eclipse
 
