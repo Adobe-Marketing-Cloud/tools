@@ -57,7 +57,10 @@ Supported platforms:
 
 Want to hit a shortcut like `ctrl + cmd + P` and have your current open file or selected folder pushed to the server from within IntelliJ? Without having to save or anything else? Just set up these tools below.
 
-Setup external tools under Settings > Tools > External Tools.
+Setup external tools under: 
+* File | Settings | Tools | External Tools for Windows and Linux
+* IntelliJ IDEA | Preferences | Tools | External Tools for macOS
+
 Add a group "repo" and add commands below, leaving the "Working directory" empty.
 Keyboard shortcuts are managed under Settings > Keymap, search for "repo" after you created the external tool entries.
 Below shortcuts are examples, your milage may vary.
